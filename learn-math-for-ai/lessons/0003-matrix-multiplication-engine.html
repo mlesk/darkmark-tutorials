@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0003: Matrix Multiplication — The Engine of Attention</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: #2563eb;
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--accent-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.2rem 0;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+      .formula-spotlight {
+        text-align: center;
+        background: #eff6ff;
+        border: 2px solid #2563eb;
+        padding: 1.2rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 1.1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0003 — Matrix Multiplication: The Engine of Attention</h1>
+    <p class="meta">Linear Algebra Pillar · ~25 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> The attention formula is
+      <code>softmax(Q·Kᵀ/√dₖ)·V</code>. The first operation —
+      <code>Q·Kᵀ</code> — is a matrix multiplication that computes
+      <strong
+        >every pairwise dot product between every query and every key, all at
+        once</strong
+      >. This is the computational heart of the transformer, and this lesson
+      teaches you exactly how it works.
+    </div>
+
+    <div class="hook">
+      You know dot products measure similarity between two vectors. You know
+      matrices transform vectors. Now: what if you had a matrix of queries and a
+      matrix of keys, and you wanted to compute the similarity between
+      <em>every possible pair</em> — all in one operation? That's
+      <strong>Q·Kᵀ</strong>. One matrix multiplication, every pairwise
+      comparison, done.
+    </div>
+
+    <h2>Matrix × Matrix: The Rules</h2>
+
+    <p>
+      To multiply <strong>A</strong> (m×n) by <strong>B</strong> (n×p), the
+      result <strong>C</strong> (m×p) has entry C<sub>ij</sub> = dot product of
+      row i of A with column j of B:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      C<sub>ij</sub> = Σₖ A<sub>ik</sub> · B<sub>kj</sub>
+    </p>
+
+    <p>
+      The inner dimensions must match: (m×<strong>n</strong>) ×
+      (<strong>n</strong>×p) → (m×p). This is why K must be transposed — so its
+      dimension matches Q's.
+    </p>
+
+    <h2>Q·Kᵀ: The Similarity Matrix</h2>
+
+    <p>In attention, we have:</p>
+    <ul>
+      <li>
+        <strong>Q</strong>: matrix of query vectors (seq_len × d<sub>k</sub>) —
+        "what am I looking for?" for each position
+      </li>
+      <li>
+        <strong>K</strong>: matrix of key vectors (seq_len × d<sub>k</sub>) —
+        "what do I contain?" for each position
+      </li>
+    </ul>
+
+    <p>
+      Q·Kᵀ has dimensions (seq_len × d<sub>k</sub>) × (d<sub>k</sub> × seq_len)
+      = <strong>(seq_len × seq_len)</strong>. Every entry (i,j) is the dot
+      product between query i and key j:
+    </p>
+
+    <div class="formula-spotlight">
+      (Q·Kᵀ)<sub>ij</sub> = q<sub>i</sub> · k<sub>j</sub> =
+      <em>similarity between position i's query and position j's key</em>
+    </div>
+
+    <p>
+      That's it. One matrix multiplication computes the similarity between
+      <strong>every word and every other word</strong> in the input. For a
+      2048-token context, that's 4,194,304 pairwise comparisons — in one
+      operation.
+    </p>
+
+    <div class="insight">
+      <strong>This is why transformers scale.</strong> The number of pairwise
+      comparisons grows as seq_len², but matrix multiplication on GPUs is
+      incredibly optimized. The bottleneck isn't the computation — it's the
+      quadratic memory. This is why "context length" is a big deal: doubling
+      context length quadruples the attention matrix.
+    </div>
+
+    <h2>Composition of Transformations</h2>
+
+    <p>
+      Matrix multiplication also represents <strong>composition</strong>. If B
+      transforms vector space U→V, and A transforms V→W, then A·B transforms U→W
+      directly:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      (A·B)·x = A·(B·x)
+    </p>
+
+    <p>
+      Apply B first, then A. The product A·B is a single matrix that does both.
+      This is why stacking transformer layers works: each layer is a composition
+      of transformations.
+    </p>
+
+    <div class="insight">
+      <strong
+        >The entire transformer is one giant composition of matrix
+        multiplications.</strong
+      >
+      Input → Embedding → (Attention → FFN → Norm)<sup>N</sup> → Output. Every
+      arrow is a matrix multiplication (or a composition of them). The model is,
+      mathematically speaking, a very elaborate function built entirely from
+      matrix operations.
+    </div>
+
+    <h2>After Q·Kᵀ: What Comes Next (Preview)</h2>
+
+    <p>The full attention formula: <code>softmax(Q·Kᵀ/√dₖ)·V</code></p>
+
+    <table>
+      <tr>
+        <th>Operation</th>
+        <th>What It Does</th>
+        <th>Lesson</th>
+      </tr>
+      <tr>
+        <td>Q·Kᵀ</td>
+        <td>Compute all pairwise similarities (matrix mult)</td>
+        <td>0003 (this one)</td>
+      </tr>
+      <tr>
+        <td>/√dₖ</td>
+        <td>Scale to prevent vanishing gradients</td>
+        <td>0013</td>
+      </tr>
+      <tr>
+        <td>softmax(·)</td>
+        <td>Convert similarities to probabilities (rows sum to 1)</td>
+        <td>0012</td>
+      </tr>
+      <tr>
+        <td>·V</td>
+        <td>Weighted average of value vectors by attention probabilities</td>
+        <td>0013</td>
+      </tr>
+    </table>
+
+    <p>
+      Each piece has a mathematical reason for being there. None of it is
+      arbitrary. By the end of this course, you'll understand all of them.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: Q has shape (100 × 64) and K has shape (100 × 64). What is the
+          shape of Q·Kᵀ?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)">A. (64 × 64)</span>
+        <span class="quiz-option" onclick="check('q1', 2)">B. (100 × 100)</span>
+        <span class="quiz-option" onclick="check('q1', 3)">C. (100 × 64)</span>
+        <span class="quiz-option" onclick="check('q1', 4)">D. (64 × 100)</span>
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>Q2: Entry (3, 7) of Q·Kᵀ represents what?</p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. The similarity between key 3 and query 7</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. The similarity between query 3 and key 7</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. The similarity between query 3 and value 7</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. The 7th component of query 3</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3 (Challenge): If context length doubles from 1024 to 2048, how does
+          the size of the Q·Kᵀ matrix change?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. It doubles (2×)</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. It quadruples (4×)</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. It stays the same</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. It increases by 8×</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a
+        href="https://www.youtube.com/watch?v=XkY2DOUCWMU&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"
+        >Matrix multiplication as composition — 3Blue1Brown (Essence of Linear
+        Algebra, Ch. 4)</a
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Strang, <em>Linear Algebra and Its Applications</em> — Section 1.4 (Matrix
+      Multiplication) and 1.5 (Transposes)
+    </div>
+
+    <div class="teacher-note">
+      The Q·Kᵀ pattern is the single most important matrix multiplication in
+      modern AI. If the dimensions aren't clicking, ask me to walk through a
+      concrete example with 3 tokens and 4-dimensional vectors. Seeing it with
+      small numbers makes the pattern obvious.
+    </div>
+
+    <div class="prev-next">
+      <a href="0002-matrices-as-transformations.html"
+        >← 0002: Matrices as Transformations</a
+      >
+      <a href="0004-vector-spaces-embeddings.html"
+        >Next: 0004 — Vector Spaces & Embeddings →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! (100×64) × (64×100) = (100×100). The result is a square matrix where the entry at (i,j) gives the similarity between query i and key j.",
+              1: "(64×64) would be Kᵀ·Q (reversed order).",
+              3: "(100×64) would be if K were not transposed — but Kᵀ swaps its dimensions.",
+              4: "(64×100) would also be from reversed order.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Entry (i,j) = qᵢ·kⱼ — query i dotted with key j. Row index is the query, column index is the key.",
+              1: "The row is the query, not the key.",
+              3: "Values aren't involved in this step — Q·Kᵀ only uses queries and keys.",
+              4: "The 7th component of query 3 would be Q[3,7], not (Q·Kᵀ)[3,7].",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Q·Kᵀ is (seq_len × seq_len), so it grows as seq_len². Doubling the length quadruples the matrix: 1024²=1,048,576 → 2048²=4,194,304. This is the quadratic bottleneck of attention.",
+              1: "The matrix is square, so doubling each dimension quadruples the area.",
+              3: "The matrix grows with sequence length.",
+              4: "The growth is quadratic (n²), not cubic (n³).",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0002-matrices-as-transformations.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0004-vector-spaces-embeddings.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

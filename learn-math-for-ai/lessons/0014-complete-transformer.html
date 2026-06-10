@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0014: The Complete Transformer</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --bridge: #059669;
+        --bridge-light: #d1fae5;
+        --la: #2563eb;
+        --prob: #7c3aed;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--bridge-light);
+        border-left: 3px solid var(--bridge);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--bridge);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--bridge-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.2rem 0;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+      .checklist {
+        list-style: none;
+        padding: 0;
+      }
+      .checklist li {
+        margin: 0.5rem 0;
+        padding: 0.4rem 0;
+      }
+      .checklist li::before {
+        content: "☐ ";
+        color: var(--muted);
+      }
+      .checklist li.done::before {
+        content: "☑ ";
+        color: var(--success);
+      }
+      .architecture {
+        background: #fff;
+        border: 2px solid var(--bridge);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .architecture .layer {
+        padding: 0.4rem 0.6rem;
+        margin: 0.2rem 0;
+        border-radius: 3px;
+        text-align: center;
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 0.85rem;
+      }
+      .architecture .layer.embed {
+        background: var(--accent-light);
+      }
+      .architecture .layer.attn {
+        background: var(--bridge-light);
+      }
+      .architecture .layer.ffn {
+        background: #fef3c7;
+      }
+      .architecture .layer.norm {
+        background: #f3f4f6;
+      }
+      .architecture .layer.out {
+        background: var(--prob-light);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0014 — The Complete Transformer + Reading the Paper</h1>
+    <p class="meta">Convergence · ~35 minutes · Final lesson</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> This is the summit. Every concept from
+      the previous 13 lessons assembles into the complete transformer
+      architecture. By the end of this lesson, you will be able to read
+      "Attention Is All You Need" — the 9-page paper that launched the modern AI
+      era — with genuine mathematical comprehension. Every equation, every
+      diagram, every architectural decision will be in your vocabulary.
+    </div>
+
+    <div class="hook">
+      You started 14 lessons ago with "what is a vector?" Now you're about to
+      understand, in full mathematical detail, the architecture that powers
+      ChatGPT, Claude, Gemini, DALL·E, Sora, and GitHub Copilot. Let's assemble
+      the pyramid.
+    </div>
+
+    <h2>The Complete Architecture</h2>
+
+    <div class="architecture">
+      <p style="text-align: center; color: var(--muted); margin-bottom: 0.8rem">
+        Input: "The cat sat" → Token IDs: [464, 3797, 6313]
+      </p>
+      <div class="layer embed">
+        ▸ Embedding Layer: token IDs → vectors (d_model = 768) [Lesson 0004]
+      </div>
+      <div class="layer embed">
+        ▸ + Positional Encoding: add position signal [Lesson 0004]
+      </div>
+      <p style="text-align: center; color: var(--muted); margin: 0.5rem 0">
+        ↓ Repeat N=12 times ↓
+      </p>
+      <div class="layer attn">
+        ▸ Multi-Head Attention: tokens exchange information [Lesson 0013]
+      </div>
+      <div class="layer norm">
+        ▸ Add &amp; Layer Norm: residual + stabilize [Lesson 0005]
+      </div>
+      <div class="layer ffn">
+        ▸ Feed-Forward Network: per-token transformation
+      </div>
+      <div class="layer norm">
+        ▸ Add &amp; Layer Norm: residual + stabilize [Lesson 0005]
+      </div>
+      <p style="text-align: center; color: var(--muted); margin: 0.5rem 0">
+        ↓ After final layer ↓
+      </p>
+      <div class="layer out">
+        ▸ Output Projection: final hidden state → logits (vocab_size = 50,257)
+      </div>
+      <div class="layer out">
+        ▸ Softmax: logits → probability distribution [Lesson 0012]
+      </div>
+      <p style="text-align: center; margin-top: 0.8rem">
+        <strong>Output:</strong> P("on")=0.73, P("under")=0.11, P(".")=0.03, …
+      </p>
+    </div>
+
+    <h2>Component-by-Component Walkthrough</h2>
+
+    <h3>1. Tokenization + Embedding (Input → Vectors)</h3>
+    <p>
+      Text is split into tokens (subwords). Each token ID is looked up in the
+      embedding matrix <strong>E</strong> (vocab_size × d_model). The result is
+      a matrix X (seq_len × d_model). Positional encodings are
+      <strong>added</strong> (not concatenated) — this is why the dimensions
+      must match. <em>Lessons 0001, 0004.</em>
+    </p>
+
+    <h3>2. Multi-Head Attention (The Core)</h3>
+    <p>
+      Each token's vector is projected into Q, K, V through learned matrices.
+      Attention computes context-aware representations: each token gathers
+      information from all other tokens, weighted by relevance. Multiple heads
+      run in parallel, capturing different relationship types.
+      <em>Lesson 0013.</em>
+    </p>
+
+    <h3>3. Add & Norm (Residual + Stabilization)</h3>
+    <p>
+      Residual connection: output = LayerNorm(x + Attention(x)). The "+"
+      preserves the original signal; LayerNorm prevents values from
+      growing/shrinking across layers. Without residuals, deep transformers
+      don't train. <em>Lesson 0005.</em>
+    </p>
+
+    <h3>4. Feed-Forward Network (Per-Token Processing)</h3>
+    <p>
+      A small two-layer neural network applied <strong>independently</strong> to
+      each position:
+    </p>
+    <p
+      style="
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+        text-align: center;
+      "
+    >
+      FFN(x) = ReLU(x·W₁ + b₁)·W₂ + b₂
+    </p>
+    <p>
+      Typically, the hidden dimension is 4× d_model (e.g., 768 → 3072 → 768).
+      This is where most of the model's parameters live — the FFN layers contain
+      ~⅔ of all parameters. <em>Lessons 0002, 0003.</em>
+    </p>
+
+    <h3>5. Stack N Layers</h3>
+    <p>
+      The block (Attention → Add&Norm → FFN → Add&Norm) is repeated N times
+      (N=12 for GPT-2 base, N=96 for GPT-3). Each layer refines the
+      representations. Deeper layers capture more abstract patterns.
+      <em>Lesson 0005.</em>
+    </p>
+
+    <h3>6. Output: Hidden State → Probabilities</h3>
+    <p>
+      The final hidden state at the last position is multiplied by the
+      <strong>unembedding matrix</strong> (often tied to the embedding matrix:
+      W_unembed = Eᵀ). This produces logits — a vector of length vocab_size.
+      Softmax converts logits to a probability distribution. The model samples
+      from this distribution to generate the next token.
+      <em>Lessons 0007–0012.</em>
+    </p>
+
+    <h2>Training: How It Learns</h2>
+
+    <p>During training (not inference), the full forward pass happens, then:</p>
+    <ol>
+      <li>
+        <strong>Loss computation:</strong> Cross-entropy between predicted
+        distribution Q and true next token P: loss = −log Q(correct_token).
+        <em>Lessons 0010, 0011.</em>
+      </li>
+      <li>
+        <strong>Backpropagation:</strong> Gradients flow backward through every
+        operation — softmax, matrix multiplications, embeddings, all of it. The
+        chain rule from calculus (your calculus background!) computes how each
+        parameter contributed to the loss.
+      </li>
+      <li>
+        <strong>Gradient descent:</strong> Every parameter (all ~175B of them)
+        is nudged slightly in the direction that reduces loss. The learning rate
+        controls how big the nudge is.
+      </li>
+      <li>
+        <strong>Repeat</strong> billions of times across the entire training
+        corpus.
+      </li>
+    </ol>
+
+    <div class="insight">
+      <strong
+        >Training is just: forward pass → compute loss (cross-entropy) →
+        backward pass (chain rule) → update parameters (gradient descent) →
+        repeat.</strong
+      >
+      All the mathematical machinery you've learned — vectors, matrices,
+      softmax, cross-entropy — is designed to make this loop work efficiently
+      and at scale. The transformer architecture isn't just clever; it's
+      <em>optimized for gradient-based learning</em>.
+    </div>
+
+    <h2>Reading "Attention Is All You Need"</h2>
+
+    <p>
+      You are now ready to read the original transformer paper with genuine
+      comprehension. Here's a section-by-section guide:
+    </p>
+
+    <table>
+      <tr>
+        <th>Section</th>
+        <th>What to Look For</th>
+        <th>Your Math</th>
+      </tr>
+      <tr>
+        <td>§1 Introduction</td>
+        <td>Motivation: replacing recurrence with attention</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>§2 Background</td>
+        <td>Prior work, why attention is different</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>§3.1 Scaled Dot-Product Attention</td>
+        <td>
+          <strong>The core formula.</strong> Recognize Q, K, V, softmax, √dₖ
+        </td>
+        <td>0001–0003, 0012–0013</td>
+      </tr>
+      <tr>
+        <td>§3.2 Multi-Head Attention</td>
+        <td>Parallel heads, concatenation, W_O projection</td>
+        <td>0002–0004, 0013</td>
+      </tr>
+      <tr>
+        <td>§3.3 Position-wise FFN</td>
+        <td>Two linear transformations with ReLU</td>
+        <td>0002–0003</td>
+      </tr>
+      <tr>
+        <td>§3.4 Embeddings + Softmax</td>
+        <td>Embedding matrix, weight tying, output softmax</td>
+        <td>0004, 0012</td>
+      </tr>
+      <tr>
+        <td>§3.5 Positional Encoding</td>
+        <td>Sine/cosine functions, why addition not concatenation</td>
+        <td>0001, 0004</td>
+      </tr>
+      <tr>
+        <td>§4 Why Self-Attention</td>
+        <td>Complexity analysis: O(n²·d) per layer</td>
+        <td>0003</td>
+      </tr>
+      <tr>
+        <td>§5 Training</td>
+        <td>Optimizer (Adam), regularization (dropout, label smoothing)</td>
+        <td>0007–0011</td>
+      </tr>
+      <tr>
+        <td>§6 Results</td>
+        <td>BLEU scores, state-of-the-art at the time</td>
+        <td>—</td>
+      </tr>
+    </table>
+
+    <div class="insight">
+      <strong
+        >The entire paper is 9 pages. Section 3 (Model Architecture) is 3
+        pages.</strong
+      >
+      You now have the mathematical vocabulary to read every equation in those 3
+      pages. The symbols Q, K, V, softmax, √dₖ, the matrix multiplication
+      notation, the attention formula — they're all in your toolkit. You've
+      earned this.
+    </div>
+
+    <h2>Beyond Transformers: What Comes Next</h2>
+
+    <p>
+      The transformer is the foundation, not the end. Here's how your
+      mathematical literacy extends forward:
+    </p>
+
+    <ul>
+      <li>
+        <strong>GPT series</strong> (decoder-only): drop the encoder, keep the
+        decoder stack. Your math applies directly.
+      </li>
+      <li>
+        <strong>BERT</strong> (encoder-only): drop the decoder, keep the
+        encoder. Bidirectional attention (no causal mask). Same math.
+      </li>
+      <li>
+        <strong>Vision Transformers (ViT)</strong>: split images into patches,
+        treat each patch as a "token." Same math, different input modality.
+      </li>
+      <li>
+        <strong>Diffusion models</strong> (DALL·E, Stable Diffusion): add
+        Gaussian noise, learn to reverse it. Your probability foundations
+        (Gaussians, distributions) are the language.
+      </li>
+      <li>
+        <strong>State-space models</strong> (Mamba, S4): linear recurrence
+        instead of quadratic attention. Your matrix multiplication and linear
+        algebra foundations are the language for comparing these to
+        transformers.
+      </li>
+      <li>
+        <strong>Multimodal models</strong> (GPT-4V, Gemini): images + text →
+        shared embedding space → transformer. Your embedding space understanding
+        lets you see how different modalities share a representation.
+      </li>
+    </ul>
+
+    <div class="insight">
+      <strong>You can now learn any AI architecture.</strong> The mathematical
+      foundations you've built — linear algebra for representation and
+      transformation, probability for uncertainty and learning — are the
+      universal language of AI. Every new architecture (Mamba, Jamba, RWKV,
+      Hyena, Monarch Mixer) is described in this language. You've learned to
+      read, not just to recognize.
+    </div>
+
+    <h2>Your 14-Lesson Journey</h2>
+
+    <ul class="checklist">
+      <li class="done">
+        0000 — The Transformer: Your North Star (destination preview)
+      </li>
+      <li class="done">0001 — Vectors: The Atom of AI Data</li>
+      <li class="done">0002 — Matrices as Transformations</li>
+      <li class="done">
+        0003 — Matrix Multiplication: The Engine of Attention
+      </li>
+      <li class="done">0004 — Vector Spaces, Bases & Embeddings</li>
+      <li class="done">0005 — Projections, Orthogonality & Residuals</li>
+      <li class="done">0006 — Eigenvalues, SVD & Matrix Secrets</li>
+      <li class="done">0007 — Probability: The Language of Uncertainty</li>
+      <li class="done">0008 — Conditional Probability & Bayes</li>
+      <li class="done">0009 — Random Variables, Expectation & Distributions</li>
+      <li class="done">0010 — Entropy & Cross-Entropy</li>
+      <li class="done">0011 — KL Divergence</li>
+      <li class="done">0012 — Softmax: The Bridge</li>
+      <li class="done">0013 — The Attention Mechanism</li>
+      <li class="done">0014 — The Complete Transformer (you are here)</li>
+    </ul>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: The feed-forward network in a transformer block is applied
+          independently to each position. Why is this okay, given that attention
+          already mixed information across positions?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. It's a bug that was never fixed</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. Attention handles cross-position mixing; the FFN handles
+          per-position transformation. The division of labor is clean: attention
+          = "communicate", FFN = "think"</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. The FFN actually mixes positions internally</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. Position-independent processing doesn't work — this is why
+          transformers need many layers</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: The embedding matrix and the output projection matrix are often
+          "tied" (W_output = Eᵀ). Why does this make mathematical sense?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. It saves memory — no deeper reason</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. The embedding maps tokens → vectors; the output maps vectors →
+          token probabilities. If a token's embedding is a good representation
+          of its meaning, then using the same mapping in reverse to score how
+          well a vector matches each token is mathematically natural</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. The matrices are forced to be tied by the transformer
+          architecture</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. Tying matrices always improves performance</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3 (Capstone): A new paper claims to improve transformers by replacing
+          softmax in attention with a different normalization. What do you now
+          know to ask about this claim?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. "What programming language did you use?"</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. "Does your alternative still produce row-stochastic matrices
+          (non-negative, rows sum to 1)? Does it preserve the order of attention
+          scores? Is it differentiable? Does it avoid saturation like √dₖ
+          scaling does? And does it maintain or improve the convex combination
+          property that stabilizes training?"</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. "Is it faster than softmax?"</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. "Does it use fewer lines of code?"</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📄 Read Now: The Paper</strong>
+      Vaswani et al., <em>"Attention Is All You Need"</em> (2017) —
+      <a href="https://arxiv.org/abs/1706.03762">arxiv.org/abs/1706.03762</a
+      ><br />
+      <span style="color: var(--muted)"
+        >Start with Section 3. Read it aloud if it helps. You know every symbol.
+        You understand every operation. This paper is now written in your
+        language.</span
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Recommended Victory Lap</strong>
+      Re-watch: 3Blue1Brown,
+      <em>"But what is a GPT? Visual intro to transformers"</em> —
+      <a href="https://www.youtube.com/watch?v=wjZofJX0v4M">YouTube</a><br />
+      <span style="color: var(--muted)"
+        >Watch it again now. The first time (Lesson 0000), you saw shapes and
+        ideas. This time, you'll see Q·Kᵀ, softmax, √dₖ, residuals, embeddings —
+        the actual mathematics, animated. The difference is what you've
+        learned.</span
+      >
+    </div>
+
+    <div class="teacher-note">
+      You did it. 15 lessons (0000–0014), two pillars of mathematics, one
+      architecture. You can now read AI papers, evaluate AI claims, and reason
+      about AI systems in the language they're actually built in — linear
+      algebra and probability. The goal was never to build a transformer. It was
+      to <em>understand</em> one. You've achieved that. What you do with this
+      literacy — which domain you apply it to, which opportunities you
+      recognize, which decisions you inform — that's your mission now.
+    </div>
+
+    <div class="prev-next">
+      <a href="0013-attention-mechanism.html"
+        >← 0013: The Attention Mechanism</a
+      >
+      <a href="0000-transformer-north-star.html"
+        >Return to 0000: The North Star (re-read with new eyes)</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! This division of labor is a key architectural insight. Attention layers handle inter-token communication (mixing information across the sequence). FFN layers handle per-token computation (transforming each token's representation independently). After attention enriches each token with context, the FFN processes that enriched representation — applying the same transformation to every position but with position-specific inputs.",
+              1: "It's intentional, not a bug — this separation of concerns is fundamental to the architecture.",
+              3: "The FFN is position-independent by design: FFN(x_i) processes each token x_i separately with the same weights.",
+              4: "It works precisely because attention already handled cross-position mixing.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Weight tying uses the same matrix for embedding (tokens→vectors) and unembedding (vectors→token scores). If E[i] is the learned vector for token i, then Eᵀ naturally scores how aligned a hidden state is with each token's embedding direction. It also cuts the parameter count nearly in half (no separate output matrix) and provides a useful inductive bias: the representation space and the output space share structure.",
+              1: "Memory savings (~half the parameters) is a benefit, but there's a deeper representational reason.",
+              3: "Weight tying is optional — it's a design choice, not a requirement.",
+              4: "Weight tying helps by reducing parameters (less overfitting) and providing a useful bias, but it's not universally better.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! This is what genuine mathematical competence looks like: asking about the <em>properties</em> of the mathematical operations, not their names or implementations. Softmax provides specific guarantees (positivity, normalization, differentiability, order preservation, convex combination). Any replacement must either preserve these guarantees or explain why they're not needed. These are the right questions — and you couldn't have asked them 14 lessons ago.",
+              1: "Implementation language is the least important question.",
+              3: "Speed matters, but correctness and stability matter more. A faster approximation that breaks training stability is useless.",
+              4: "Lines of code is irrelevant to mathematical correctness.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0013-attention-mechanism.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <span style="color:#ccc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</span>
+  </nav>
+
+</body>
+</html>

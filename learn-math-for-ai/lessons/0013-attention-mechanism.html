@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0013: The Attention Mechanism</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --bridge: #059669;
+        --bridge-light: #d1fae5;
+        --la: #2563eb;
+        --prob: #7c3aed;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--bridge-light);
+        border-left: 3px solid var(--bridge);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--bridge);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--bridge-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      .formula-spotlight {
+        text-align: center;
+        background: var(--bridge-light);
+        border: 2px solid var(--bridge);
+        padding: 1.2rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 1.05rem;
+      }
+      .step-box {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0;
+      }
+      .step-box h4 {
+        margin: 0 0 0.4rem;
+        color: var(--bridge);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.2rem 0;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0013 — The Attention Mechanism: Step by Step</h1>
+    <p class="meta">
+      Convergence · ~30 minutes · The core innovation of the transformer
+    </p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> This is it. The attention mechanism is
+      where everything you've learned converges. Vectors (0001) become queries,
+      keys, and values through matrix transformations (0002). Matrix
+      multiplication (0003) computes all pairwise similarities. Softmax (0012)
+      turns those similarities into probability distributions. The result is a
+      weighted combination of value vectors — each token selectively gathering
+      information from every other token. Every lesson so far has been building
+      toward understanding this mechanism.
+    </div>
+
+    <div class="hook">
+      "The cat sat on the mat." How does the model know that "sat" is the verb
+      and "cat" is its subject? By <strong>attending</strong>: "sat" looks back
+      at all previous words, computes how relevant each one is, and gathers
+      information accordingly. "Cat" gets high attention. "The" gets low
+      attention. This is the attention mechanism — and here is exactly how it
+      works.
+    </div>
+
+    <h2>The Core Formula</h2>
+
+    <div class="formula-spotlight">
+      Attention(Q, K, V) = softmax(Q·Kᵀ / √dₖ) · V
+    </div>
+
+    <p>
+      Every symbol in this formula has a precise mathematical meaning. You now
+      know all of them:
+    </p>
+
+    <table>
+      <tr>
+        <th>Symbol</th>
+        <th>What It Is</th>
+        <th>Lesson</th>
+      </tr>
+      <tr>
+        <td><strong>Q</strong></td>
+        <td>
+          Query matrix — "what am I looking for?" Each row is one token's query
+          vector
+        </td>
+        <td>0002</td>
+      </tr>
+      <tr>
+        <td><strong>K</strong></td>
+        <td>
+          Key matrix — "what do I contain?" Each row is one token's key vector
+        </td>
+        <td>0002</td>
+      </tr>
+      <tr>
+        <td><strong>V</strong></td>
+        <td>
+          Value matrix — "what information do I carry?" Each row is one token's
+          value vector
+        </td>
+        <td>0002</td>
+      </tr>
+      <tr>
+        <td><strong>Q·Kᵀ</strong></td>
+        <td>
+          Matrix multiplication — all pairwise dot products between queries and
+          keys
+        </td>
+        <td>0003</td>
+      </tr>
+      <tr>
+        <td><strong>√dₖ</strong></td>
+        <td>Scaling factor — prevents softmax saturation in high dimensions</td>
+        <td>0012</td>
+      </tr>
+      <tr>
+        <td><strong>softmax(·)</strong></td>
+        <td>
+          Row-wise softmax — converts similarity scores to probability
+          distributions
+        </td>
+        <td>0012</td>
+      </tr>
+      <tr>
+        <td><strong>·V</strong></td>
+        <td>
+          Weighted average of value vectors, using attention probabilities as
+          weights
+        </td>
+        <td>0001, 0003</td>
+      </tr>
+    </table>
+
+    <h2>Step-by-Step Walkthrough</h2>
+
+    <div class="step-box">
+      <h4>Step 1: Create Q, K, V from the input</h4>
+      <p>
+        The input is a matrix X (seq_len × d_model) — one row per token. Three
+        learned weight matrices project X into query, key, and value spaces:
+      </p>
+      <p
+        style="
+          font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+          text-align: center;
+        "
+      >
+        Q = X·W<sub>Q</sub>&nbsp;&nbsp;&nbsp;K =
+        X·W<sub>K</sub>&nbsp;&nbsp;&nbsp;V = X·W<sub>V</sub>
+      </p>
+      <p>
+        Each token now has three representations: what it's looking for (query),
+        what it offers (key), and what it carries (value).
+      </p>
+    </div>
+
+    <div class="step-box">
+      <h4>Step 2: Compute all pairwise similarities</h4>
+      <p
+        style="
+          font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+          text-align: center;
+        "
+      >
+        Scores = Q·Kᵀ
+      </p>
+      <p>
+        Entry (i,j) = qᵢ·kⱼ — how relevant token j's content is to token i's
+        query. This is an (seq_len × seq_len) matrix of raw similarity scores.
+      </p>
+    </div>
+
+    <div class="step-box">
+      <h4>Step 3: Scale and apply softmax</h4>
+      <p
+        style="
+          font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+          text-align: center;
+        "
+      >
+        Weights = softmax(Scores / √dₖ)
+      </p>
+      <p>
+        Each row becomes a probability distribution over all tokens. Row i tells
+        you: "token i should pay X% attention to token 0, Y% to token 1, Z% to
+        token 2…" The weights in each row sum to 1.
+      </p>
+    </div>
+
+    <div class="step-box">
+      <h4>Step 4: Weighted combination of values</h4>
+      <p
+        style="
+          font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+          text-align: center;
+        "
+      >
+        Output = Weights · V
+      </p>
+      <p>
+        Each output row is a weighted average of all value vectors, where the
+        weights are the attention probabilities. Token i's output = Σⱼ
+        (attention weight ij) · vⱼ.
+      </p>
+      <p>
+        Tokens that got high attention contribute more to the output. Tokens
+        that got near-zero attention contribute almost nothing. The output at
+        position i is a <strong>context-aware representation</strong> of token i
+        — it's been enriched with information from every relevant token in the
+        sequence.
+      </p>
+    </div>
+
+    <h2>Multi-Head Attention</h2>
+
+    <p>
+      Instead of one set of Q/K/V projections, the transformer uses
+      <strong>multiple heads</strong> (typically 8–128):
+    </p>
+
+    <p
+      style="
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+        text-align: center;
+      "
+    >
+      MultiHead(Q,K,V) = Concat(head₁, ..., headₕ) · W<sub>O</sub><br />
+      where headᵢ = Attention(Q·W<sub>Q</sub>ⁱ, K·W<sub>K</sub>ⁱ,
+      V·W<sub>V</sub>ⁱ)
+    </p>
+
+    <p>
+      Each head learns to attend to <strong>different things</strong>: one head
+      might track syntactic relationships (subject-verb), another might track
+      semantic relationships (synonyms), another might track positional
+      patterns. The heads operate in parallel, and their outputs are
+      concatenated and projected back to the model dimension.
+    </p>
+
+    <div class="insight">
+      <strong
+        >Multi-head attention is like having multiple expert readers.</strong
+      >
+      One reader looks for grammar, one for meaning, one for pronoun references.
+      They all read the same text but notice different things. Their insights
+      are combined into a richer understanding than any single reader could
+      provide.
+    </div>
+
+    <h2>Causal Masking</h2>
+
+    <p>
+      During autoregressive generation, the model shouldn't see future tokens. A
+      <strong>causal mask</strong> sets all scores where j > i to −∞ before
+      softmax:
+    </p>
+
+    <p
+      style="
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+        text-align: center;
+      "
+    >
+      MaskedScores<sub>ij</sub> = { Scores<sub>ij</sub> if j ≤ i; −∞ if j > i }
+    </p>
+
+    <p>
+      After softmax: exp(−∞) = 0, so future tokens get exactly zero attention
+      weight. The model can only attend to the current token and previous
+      tokens.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: In attention, why are there three separate projections (Q, K, V)
+          instead of just one?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. Three is an arbitrary choice from the original paper</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. Q and K are for computing relevance (via dot product), while V is
+          what actually gets aggregated. Separating them lets the model learn
+          different representations for "matching" vs. "content to
+          transmit"</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. It makes the model three times larger</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. Q and K are redundant — one projection would work the same</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: After softmax, the attention weights for token i sum to 1 across
+          all tokens j. What does this guarantee?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. Token i attends equally to all tokens</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. The output for token i is a convex combination (weighted average)
+          of value vectors — it stays in the same "ballpark" as its inputs</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. The model can only attend to one token at a time</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. The output is always the same as the input</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: A startup claims their new architecture "replaces attention with a
+          more efficient mechanism." What mathematical question should you ask?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. "What's your GitHub star count?"</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. "How does your mechanism compute relationships between tokens —
+          does it use pairwise dot products (like attention), convolutions,
+          recurrences, or something else? And what's the computational
+          complexity in sequence length?"</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. "Is it faster than a GPU?"</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. "Does it use Python?"</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📄 Primary Source</strong>
+      Vaswani et al., <em>"Attention Is All You Need"</em> — Section 3.2
+      (Attention),
+      <a href="https://arxiv.org/abs/1706.03762">arxiv.org/abs/1706.03762</a>.
+      Read Section 3.2 now — you have the mathematical background to understand
+      every equation.
+    </div>
+
+    <div class="teacher-note">
+      Read Section 3.2 of "Attention Is All You Need" right now. You'll
+      recognize every symbol: Q, K, V, softmax, √dₖ. The paper's equations are
+      now in <em>your</em> mathematical vocabulary. That's the competence you've
+      built over 13 lessons.
+    </div>
+
+    <div class="prev-next">
+      <a href="0012-softmax-the-bridge.html">← 0012: Softmax — The Bridge</a>
+      <a href="0014-complete-transformer.html"
+        >Next: 0014 — The Complete Transformer →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The separation of Q/K/V is a key design insight. Q and K work together for matching (via dot product — they should be in the same space). V is what gets aggregated — it can be in a different space, optimized for carrying information rather than matching. If Q=K=V, it's a special case (sometimes used), but the general form with separate projections is more expressive.",
+              1: "The three projections have specific mathematical purposes — they're not arbitrary.",
+              3: "The model could use any number of projections. Three emerged as optimal.",
+              4: "Q=K is possible (shared-key attention) but less expressive. V being separate from Q/K is important.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The softmax-normalized weights form a convex combination: each weight is between 0 and 1, and they sum to 1. This means the output is a weighted <em>average</em> (not a weighted sum with arbitrary scaling), which keeps values in a reasonable range and prevents the output from exploding. This numerical stability is essential for stacking many layers.",
+              1: "The weights can be very peaked (one token near 1, others near 0) — not equal.",
+              3: "Attention is fundamentally a soft, distributed mechanism — every token contributes, just with different weights.",
+              4: "The output is a transformed, context-enriched representation — not the same as the input.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! This question gets at the mathematical essence. The computational complexity of attention is O(n²) in sequence length. Alternatives like Mamba (state-space models, O(n)), linear attention (kernelized, O(n)), or sparse attention (sliding window, O(n·w)) trade expressiveness for efficiency. Understanding the <em>operations</em> — not the labels — is genuine mathematical literacy.",
+              1: "GitHub stars measure popularity, not mathematical soundness.",
+              3: "'Faster' depends on the operation and hardware — the mathematical complexity class (O(n²) vs O(n)) is more informative.",
+              4: "Implementation language is irrelevant to the mathematical approach.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0012-softmax-the-bridge.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0014-complete-transformer.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

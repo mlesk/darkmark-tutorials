@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0001: Vectors — The Atom of AI Data</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --warning: #d97706;
+        --warning-bg: #fef3c7;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.4rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .puzzle {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: #2563eb;
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--accent-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.2rem 0;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+      .vector-grid {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 1rem 0;
+      }
+      .vector-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.8rem 1rem;
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 0.85rem;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0001 — Vectors: The Atom of AI Data</h1>
+    <p class="meta">Linear Algebra Pillar · ~20 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> In the transformer pipeline (Lesson
+      0000), the first step after tokenization is the
+      <strong>embedding layer</strong> — converting each token into a vector.
+      Every word, every image patch, every piece of data flowing through a
+      transformer is a vector. This lesson builds the foundation:
+      <em>what a vector is, and what you can do with one.</em>
+    </div>
+
+    <div class="hook">
+      Every word you type into ChatGPT, every image Midjourney generates, every
+      song a recommendation system suggests — all of them start as
+      <strong>vectors</strong>. A vector is the fundamental unit of data in AI.
+      If you understand vectors deeply, you understand the alphabet that every
+      AI system reads.
+    </div>
+
+    <h2>What Is a Vector?</h2>
+
+    <p>There are two ways to see a vector, and you need both:</p>
+
+    <h3>The Geometric View</h3>
+    <p>A vector is an <strong>arrow in space</strong>. It has:</p>
+    <ul>
+      <li><strong>Direction</strong> — where it points</li>
+      <li><strong>Magnitude</strong> (or length) — how far it reaches</li>
+    </ul>
+    <p>
+      In 2D, a vector <strong>v</strong> = (3, 1) means "go 3 steps right, 1
+      step up." Draw it from the origin — it's an arrow pointing to the point
+      (3, 1).
+    </p>
+
+    <h3>The Algebraic View</h3>
+    <p>A vector is a <strong>list of numbers</strong>:</p>
+
+    <div class="vector-grid">
+      <div class="vector-card">
+        <strong>v</strong> = [3, 1]<br /><small>2 dimensions</small>
+      </div>
+      <div class="vector-card">
+        <strong>w</strong> = [0.2, −0.8, 0.5, 0.1]<br /><small
+          >4 dimensions</small
+        >
+      </div>
+      <div class="vector-card">
+        <strong>e</strong> = [0.12, −0.03, …, 0.41]<br /><small
+          >768 dimensions</small
+        >
+      </div>
+    </div>
+
+    <p>
+      The number of entries is the vector's <strong>dimension</strong>. A vector
+      in 2D lives on a flat plane. A vector in 768D lives in a space you cannot
+      visualize — but the same rules apply. This is the core trick of AI:
+      <em>math that works in 2D works in 768D exactly the same way.</em>
+    </p>
+
+    <div class="insight">
+      <strong>Key insight:</strong> The geometric view builds intuition. The
+      algebraic view scales to any number of dimensions. AI systems use vectors
+      with hundreds or thousands of dimensions — but the operations are
+      identical to what you do in 2D. If you can reason about arrows on a plane,
+      you can reason about word embeddings, image features, and user
+      preferences.
+    </div>
+
+    <h2>Three Operations That Matter</h2>
+
+    <h3>1. Addition: v + w</h3>
+    <p>
+      Geometrically: place the tail of <strong>w</strong> at the tip of
+      <strong>v</strong>. The result is the arrow from origin to the new tip.
+      Algebraically: add component by component.
+    </p>
+    <p><code>[3, 1] + [1, 2] = [4, 3]</code></p>
+    <p>
+      In AI terms: if one vector represents "king" and another represents a
+      "gender direction," adding them might approximate "queen." This is not a
+      metaphor — word embeddings literally work this way.
+    </p>
+
+    <h3>2. Scalar Multiplication: c · v</h3>
+    <p>
+      Geometrically: stretch or shrink the arrow by factor <em>c</em>. If
+      <em>c</em> is negative, flip the direction.
+    </p>
+    <p>
+      <code>2 · [3, 1] = [6, 2]</code> (stretch)<br />
+      <code>−1 · [3, 1] = [−3, −1]</code> (flip)
+    </p>
+    <p>
+      In AI terms: scaling changes the "strength" or "intensity" of whatever the
+      vector represents.
+    </p>
+
+    <h3>3. Dot Product: v · w</h3>
+    <p>
+      Geometrically: measures how much two vectors
+      <strong>point in the same direction</strong>. Positive = similar
+      direction, zero = perpendicular, negative = opposite directions.
+    </p>
+    <p><code>[3, 1] · [1, 2] = 3×1 + 1×2 = 5</code></p>
+    <p>
+      In AI terms: the dot product is the fundamental measure of
+      <strong>similarity</strong>. When an AI system tells you two things are
+      "similar," it computed a dot product (or its normalized cousin, cosine
+      similarity). This is how recommendation systems find songs you'll like,
+      how search engines rank documents, and how attention mechanisms in
+      transformers decide which words are relevant to each other.
+    </p>
+
+    <div class="insight">
+      <strong
+        >The dot product is arguably the single most important operation in all
+        of applied AI.</strong
+      >
+      It appears in: similarity search, attention mechanisms, recommendation
+      systems, classification, clustering — essentially anywhere an AI system
+      needs to compare two things.
+    </div>
+
+    <h2>Vectors in AI: Three Real Examples</h2>
+
+    <table>
+      <tr>
+        <th>Domain</th>
+        <th>What Gets Vectorized</th>
+        <th>Dimension</th>
+        <th>What the Dot Product Measures</th>
+      </tr>
+      <tr>
+        <td>LLMs (GPT, Claude)</td>
+        <td>Words / tokens</td>
+        <td>768–12,288</td>
+        <td>
+          Semantic similarity — "king" is close to "queen," far from "bicycle"
+        </td>
+      </tr>
+      <tr>
+        <td>Image Generation</td>
+        <td>Image patches</td>
+        <td>Typically 512–1,024</td>
+        <td>
+          Visual similarity — which patches of an image relate to each other
+        </td>
+      </tr>
+      <tr>
+        <td>Recommendation</td>
+        <td>Users &amp; items</td>
+        <td>50–200</td>
+        <td>
+          Preference match — how much a user's taste vector aligns with an
+          item's feature vector
+        </td>
+      </tr>
+    </table>
+
+    <p>
+      In every case, the AI system is doing the same thing: representing things
+      as vectors, then comparing them with dot products. The magic is in
+      <em>how</em> the vectors are constructed — that's where learning
+      (training) comes in — but the <em>operations</em> are just the three you
+      learned above.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz" id="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: A vector v = [−2, 5] is multiplied by the scalar c = 0.5.
+          Geometrically, what happens to the arrow?
+        </p>
+        <span class="quiz-option" onclick="checkAnswer('q1', 1)"
+          >A. It flips direction and doubles in length</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q1', 2)"
+          >B. It shrinks to half its length, direction unchanged</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q1', 3)"
+          >C. It stays the same length but changes direction</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q1', 4)"
+          >D. It rotates 90 degrees clockwise</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: Two vectors have a dot product of zero. What does this tell you?
+        </p>
+        <span class="quiz-option" onclick="checkAnswer('q2', 1)"
+          >A. They are identical</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q2', 2)"
+          >B. They point in exactly opposite directions</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q2', 3)"
+          >C. They are perpendicular — as dissimilar in direction as possible in
+          that plane</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q2', 4)"
+          >D. One of them must be the zero vector</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: An AI company claims their new model represents documents as
+          1,536-dimensional vectors and finds similar documents by computing dot
+          products. Based on what you know, is this claim plausible?
+        </p>
+        <span class="quiz-option" onclick="checkAnswer('q3', 1)"
+          >A. No — dot products only work in 2D or 3D</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q3', 2)"
+          >B. Yes — dot products work in any number of dimensions, and this is
+          exactly how modern semantic search works</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q3', 3)"
+          >C. No — similarity between documents requires a neural network, not
+          vector math</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q3', 4)"
+          >D. Yes, but only for documents shorter than 1,536 words</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q4">
+        <p>
+          Q4 (Challenge): You have a word embedding where
+          <strong>king</strong> = [0.5, 0.8, 0.1], <strong>queen</strong> =
+          [0.5, 0.6, 0.1], and <strong>man</strong> = [0.2, 0.7, 0.1]. Without
+          computing the exact number, which pair likely has the largest dot
+          product?
+        </p>
+        <span class="quiz-option" onclick="checkAnswer('q4', 1)"
+          >A. king · man</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q4', 2)"
+          >B. king · queen</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q4', 3)"
+          >C. queen · man</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q4', 4)"
+          >D. They are all equal</span
+        >
+        <div class="feedback" id="q4-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a
+        href="https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"
+        >Vectors, what even are they? — 3Blue1Brown (Essence of Linear Algebra,
+        Ch. 1)</a
+      >
+      <span style="display: block; margin-top: 0.4rem; color: var(--muted)"
+        >This 10-minute video is the best first-pass geometric intuition for
+        vectors ever made. Watch it before the next lesson.</span
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Strang, <em>Linear Algebra and Its Applications</em> — Sections 1.1–1.2
+      (Vectors and Linear Combinations)
+      <span style="display: block; margin-top: 0.4rem; color: var(--muted)"
+        >Read these sections after the video. Strang's geometric emphasis
+        complements 3Blue1Brown perfectly.</span
+      >
+    </div>
+
+    <div class="teacher-note">
+      If anything in this lesson didn't click — vector addition, the dot
+      product, why high-dimensional vectors work the same as 2D ones — ask me. I
+      can explain it differently, work through examples, or connect it to
+      something you already know.
+    </div>
+
+    <div class="prev-next">
+      <a href="0000-transformer-north-star.html"
+        >← 0000: The Transformer North Star</a
+      >
+      <a href="0002-matrices-as-transformations.html"
+        >Next: 0002 — Matrices as Transformations →</a
+      >
+    </div>
+
+    <script>
+      function checkAnswer(qId, chosen) {
+        const answers = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Multiplying by 0.5 shrinks the arrow to half its length. The direction stays the same because the scalar is positive.",
+              1: "Not quite. A negative scalar flips direction — but 0.5 is positive. Try again.",
+              3: "The length definitely changes — scalar multiplication always scales length. The direction only changes if the scalar is negative.",
+              4: "Scalar multiplication doesn't rotate. Rotation requires a matrix (that's the next lesson!).",
+            },
+          },
+          q2: {
+            correct: 3,
+            feedback: {
+              3: "Correct! A dot product of zero means the vectors are orthogonal (perpendicular). They share no directional alignment at all.",
+              1: "Identical vectors would have a large positive dot product, not zero.",
+              2: "Opposite directions give a large negative dot product, not zero.",
+              4: "Non-zero vectors can have a zero dot product — they just need to be perpendicular.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The dot product is defined for vectors of any dimension. Modern semantic search systems (vector databases like Pinecone, Weaviate, Milvus) do exactly this — and 1,536 is a standard embedding dimension (OpenAI's ada-002 uses it).",
+              1: "Dot products work in any number of dimensions — that's their power. The formula scales up component-by-component.",
+              3: "Neural networks are often used to create the vectors (embeddings), but once created, similarity is measured with dot products (or cosine similarity).",
+              4: "The dimension of the vector (1,536) has nothing to do with document length. A 1,536-dimensional vector can represent a document of any length.",
+            },
+          },
+          q4: {
+            correct: 2,
+            feedback: {
+              2: "Correct! king·queen = 0.5×0.5 + 0.8×0.6 + 0.1×0.1 = 0.25 + 0.48 + 0.01 = 0.74. king·man = 0.5×0.2 + 0.8×0.7 + 0.1×0.1 = 0.10 + 0.56 + 0.01 = 0.67. The king-queen pair has larger component products and a higher dot product — which matches our intuition that they're semantically closer.",
+              1: "king·man ≈ 0.67, which is high but not the highest. Both pairs share semantic similarity, but king-queen edges it out.",
+              3: "queen·man ≈ 0.55 — lower than both king pairs. This makes sense: queen and man share less semantic overlap than king and man.",
+              4: "They differ — the component values produce different dot products. Try computing them if you're curious.",
+            },
+          },
+        };
+
+        const fbDiv = document.getElementById(qId + "-fb");
+        const options = document.querySelectorAll("#" + qId + " .quiz-option");
+        const answer = answers[qId];
+
+        options.forEach((opt, i) => {
+          opt.classList.remove("correct", "wrong");
+          if (i + 1 === answer.correct) opt.classList.add("correct");
+          if (i + 1 === chosen && chosen !== answer.correct)
+            opt.classList.add("wrong");
+        });
+
+        fbDiv.textContent = answer.feedback[chosen];
+        fbDiv.className =
+          "feedback show " + (chosen === answer.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0000-transformer-north-star.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0002-matrices-as-transformations.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

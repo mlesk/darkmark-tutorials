@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0012: Softmax — The Bridge Between Worlds</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --bridge: #059669;
+        --bridge-light: #d1fae5;
+        --la: #2563eb;
+        --prob: #7c3aed;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--bridge-light);
+        border-left: 3px solid var(--bridge);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--bridge);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--bridge-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      .formula-spotlight {
+        text-align: center;
+        background: var(--bridge-light);
+        border: 2px solid var(--bridge);
+        padding: 1.2rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 1.05rem;
+      }
+      .pillar-ref {
+        display: inline-block;
+        padding: 0.15em 0.5em;
+        border-radius: 3px;
+        font-size: 0.85em;
+        font-weight: 600;
+      }
+      .pillar-ref.la {
+        background: var(--accent-light);
+        color: var(--la);
+      }
+      .pillar-ref.prob {
+        background: var(--prob-light);
+        color: var(--prob);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0012 — Softmax: The Bridge Between Worlds</h1>
+    <p class="meta">
+      Convergence · ~25 minutes · Where linear algebra meets probability
+    </p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> Softmax appears
+      <strong>twice</strong> in the transformer. First, inside attention:
+      <code>softmax(Q·Kᵀ/√dₖ)</code> converts raw similarity scores into
+      attention weights (a probability distribution over which tokens to attend
+      to). Second, at the output: <code>softmax(logits)</code> converts the
+      final vector into a probability distribution over the vocabulary. Softmax
+      is the mathematical function that takes the outputs of linear algebra (dot
+      products, matrix multiplications) and turns them into the language of
+      probability. It is <em>the</em> bridge.
+    </div>
+
+    <div class="hook">
+      You have a vector of raw numbers: [2.3, −0.5, 0.0, 4.1]. You want a
+      probability distribution: numbers between 0 and 1 that sum to 1,
+      preserving the relative ordering (4.1 should get the most probability,
+      −0.5 the least). How? <strong>Softmax.</strong>
+    </div>
+
+    <h2>The Softmax Function</h2>
+
+    <div class="formula-spotlight">
+      softmax(z)<sub>i</sub> = exp(z<sub>i</sub>) / Σⱼ exp(z<sub>j</sub>)
+    </div>
+
+    <p>Step by step:</p>
+    <ol>
+      <li>
+        <strong>exp(zᵢ)</strong>: exponentiate each component. This makes all
+        values <strong>positive</strong> (eˣ > 0 for all real x).
+      </li>
+      <li>
+        <strong>Σⱼ exp(zⱼ)</strong>: sum all the exponentiated values. This is
+        the normalization constant.
+      </li>
+      <li>
+        <strong>Divide</strong>: each exp(zᵢ) by the sum. This ensures all
+        outputs sum to 1.
+      </li>
+    </ol>
+
+    <p>
+      The result is a valid probability distribution — every entry is
+      non-negative and they sum to exactly 1.
+    </p>
+
+    <h2>Why It's the Perfect Bridge</h2>
+
+    <table>
+      <tr>
+        <th>Property</th>
+        <th>Why It Matters</th>
+        <th>Connected Lessons</th>
+      </tr>
+      <tr>
+        <td><strong>Always positive</strong></td>
+        <td>Probabilities can't be negative (Axiom 1)</td>
+        <td><span class="pillar-ref prob">0007</span></td>
+      </tr>
+      <tr>
+        <td><strong>Sums to 1</strong></td>
+        <td>Probabilities must sum to 1 (Axiom 2)</td>
+        <td><span class="pillar-ref prob">0007</span></td>
+      </tr>
+      <tr>
+        <td><strong>Preserves order</strong></td>
+        <td>
+          If zᵢ > zⱼ then softmax(z)ᵢ > softmax(z)ⱼ — bigger inputs get bigger
+          probabilities
+        </td>
+        <td><span class="pillar-ref la">0003</span></td>
+      </tr>
+      <tr>
+        <td><strong>Differentiable</strong></td>
+        <td>We can compute gradients through it for backpropagation</td>
+        <td><span class="pillar-ref la">0002</span></td>
+      </tr>
+      <tr>
+        <td><strong>Amplifies differences</strong></td>
+        <td>
+          exp() makes big numbers much bigger, separating signal from noise
+        </td>
+        <td><span class="pillar-ref prob">0010</span></td>
+      </tr>
+    </table>
+
+    <div class="insight">
+      <strong>Softmax is the function that makes attention work.</strong> Q·Kᵀ
+      produces a matrix of raw similarity scores — real numbers that could be
+      anything. Softmax converts each row into a probability distribution:
+      "here's how much attention to pay to each token." Without softmax,
+      attention would just be a weighted sum with arbitrary weights. With
+      softmax, it's a weighted average with
+      <em>probabilistically meaningful</em> weights.
+    </div>
+
+    <h2>Temperature: Controlling Confidence</h2>
+
+    <p>With a temperature parameter T:</p>
+
+    <div class="formula-spotlight">
+      softmax(z/T)<sub>i</sub> = exp(z<sub>i</sub>/T) / Σⱼ exp(z<sub>j</sub>/T)
+    </div>
+
+    <ul>
+      <li>
+        <strong>T → 0</strong>: softmax approaches argmax — all probability on
+        the largest value. Deterministic, "cold."
+      </li>
+      <li>
+        <strong>T = 1</strong>: standard softmax. The model's natural
+        confidence.
+      </li>
+      <li>
+        <strong>T → ∞</strong>: softmax approaches uniform — all tokens equally
+        likely. Maximum randomness, "hot."
+      </li>
+    </ul>
+
+    <p>
+      This is the "temperature" slider you see in ChatGPT and other LLM
+      interfaces. Lower temperature = more focused, predictable outputs. Higher
+      temperature = more creative, diverse outputs. You're literally adjusting
+      how peaked the probability distribution is.
+    </p>
+
+    <h2>The Scaling Factor: √dₖ</h2>
+
+    <p>
+      In the attention formula, softmax gets <code>Q·Kᵀ/√dₖ</code> — the dot
+      products are divided by √dₖ before softmax. Why?
+    </p>
+
+    <p>
+      As dₖ (the dimension of key/query vectors) grows, dot products grow in
+      magnitude. Large magnitudes pushed through softmax produce near-one-hot
+      distributions — the model becomes overconfident, and gradients vanish (the
+      softmax saturates). Dividing by √dₖ keeps the variance of the dot products
+      roughly constant regardless of dimension. This is a subtle but critical
+      detail that makes deep transformers trainable.
+    </p>
+
+    <div class="insight">
+      <strong
+        >The √dₖ scaling is a mathematical fix for a practical problem.</strong
+      >
+      Without it, large models with high-dimensional keys would produce
+      degenerate attention patterns. With it, attention works across a wide
+      range of model sizes. This kind of detail — understanding not just what
+      the formula is, but why each piece is there — is the essence of
+      mathematical competence.
+    </div>
+
+    <h2>Softmax in the Full Architecture</h2>
+
+    <p>Softmax appears at two critical junctions:</p>
+
+    <ol>
+      <li>
+        <strong>Attention weights:</strong> softmax(Q·Kᵀ/√dₖ) — converts
+        similarity matrix to attention probabilities.
+        <em>"Which tokens should I pay attention to?"</em>
+      </li>
+      <li>
+        <strong>Output layer:</strong> softmax(W_output · h_final) — converts
+        the final hidden state to next-token probabilities.
+        <em>"What's the most likely next word?"</em>
+      </li>
+    </ol>
+
+    <p>
+      Both are the same function, applied at different scales. The first
+      operates over context positions (1024–128K). The second operates over
+      vocabulary tokens (~50K). Same math, different purpose.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: Input vector z = [1, 2, 3]. After softmax, which entry gets the
+          most probability?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. The first entry (z=1)</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. The third entry (z=3) — but the distribution won't be
+          [0,0,1]</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. All entries get equal probability</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. It's impossible to determine</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: If you increase the temperature T in softmax(z/T), what happens to
+          the output distribution?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. It becomes more peaked (higher confidence)</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. It becomes more uniform (flatter, more exploratory)</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. The probabilities sum to more than 1</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. Nothing — temperature doesn't affect softmax</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: Why is the division by √dₖ in attention softmax(Q·Kᵀ/√dₖ)
+          necessary as dₖ grows?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. It's an arbitrary convention from the original paper</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. Dot products grow with dimension; without scaling, softmax
+          saturates to near-one-hot, killing gradients during training</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. It makes the math notation look more impressive</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. It's needed to make the output sum to 1</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Bishop, <em>Pattern Recognition and Machine Learning</em> — Section 4.2
+      (Probabilistic Generative Models) for the connection between softmax and
+      categorical distributions.
+    </div>
+
+    <div class="teacher-note">
+      Softmax is deceptively simple — three lines of math — but it's the single
+      most important bridge function in all of deep learning. It's where vector
+      algebra becomes probability, where raw scores become calibrated
+      confidence, where attention weights become meaningful. Master it.
+    </div>
+
+    <div class="prev-next">
+      <a href="0011-kl-divergence.html">← 0011: KL Divergence</a>
+      <a href="0013-attention-mechanism.html"
+        >Next: 0013 — The Attention Mechanism →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! exp(3)=20.1 gets the most mass, followed by exp(2)=7.4, then exp(1)=2.7. The distribution is approximately [0.09, 0.24, 0.67] — the largest input dominates but doesn't get everything. This is exactly the behavior we want for attention: the most relevant tokens get the most weight, but others still get some.",
+              1: "Softmax preserves order — the largest input gets the largest probability.",
+              3: "Equal probability only happens when all inputs are equal (or T→∞).",
+              4: "We can determine it — softmax is deterministic.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Higher T = dividing by a larger number = compressing the differences between inputs = more uniform output. T=0.1 makes the model very confident; T=2.0 makes it explore more. This is why creative writing uses high temperature and factual QA uses low temperature.",
+              1: "That's what happens with lower temperature (T→0).",
+              3: "Softmax always normalizes — the sum is always 1.",
+              4: "Temperature directly controls the peakedness of the distribution.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! As dₖ increases, dot products (sums of dₖ products) have variance proportional to dₖ. Large dot products → exp(large) is enormous → softmax saturates at 0 or 1 → gradients become near-zero → the model stops learning. Dividing by √dₖ normalizes the variance to ~1 regardless of dimension. This is a beautiful example of mathematical reasoning solving an engineering problem.",
+              1: "The scaling has a specific mathematical justification — it's not arbitrary.",
+              3: "Every term in the formula serves a purpose.",
+              4: "Softmax sums to 1 regardless of scaling. The division is about the <em>distribution's shape</em>, not normalization.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0011-kl-divergence.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0013-attention-mechanism.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

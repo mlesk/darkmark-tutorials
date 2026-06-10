@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0001: Creating & Listing Worktrees</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #059669;
+        --accent-light: #d1fae5;
+        --border: #e5e0d8;
+        --warn: #d97706;
+        --warn-light: #fef3c7;
+        --code-bg: #f3f2ef;
+        --radius: 6px;
+        --font-mono: "SF Mono", "Fira Code", "Menlo", "Consolas", monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .hook {
+        background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+        border-left: 4px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .warn {
+        background: var(--warn-light);
+        border-left: 3px solid var(--warn);
+        padding: 0.9rem 1.2rem;
+        margin: 1.2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .warn::before {
+        content: "⚠️ ";
+      }
+      .try {
+        background: var(--accent-light);
+        border: 1px solid #a7f3d0;
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .try::before {
+        content: "🧪 Try This: ";
+        font-weight: 700;
+        color: var(--accent);
+      }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.2rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.55;
+        margin: 1rem 0;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        font-size: inherit;
+      }
+      .diagram {
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.45;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .recap {
+        background: white;
+        border: 2px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2.5rem 0 1.5rem;
+        border-radius: var(--radius);
+      }
+      .recap h3 {
+        margin-top: 0;
+        color: var(--accent);
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav a {
+        font-weight: 600;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .footnote {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 3rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        width: 100%;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.55rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: var(--code-bg);
+        font-weight: 700;
+      }
+      .quiz {
+        background: white;
+        border: 2px solid var(--border);
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .quiz h4 {
+        margin: 0 0 0.8rem;
+        font-size: 1rem;
+      }
+      .quiz ol {
+        padding-left: 1.3rem;
+      }
+      .quiz li {
+        margin: 0.5rem 0;
+      }
+      .answer {
+        display: none;
+        background: var(--accent-light);
+        padding: 0.4rem 0.8rem;
+        margin-top: 0.3rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0001: Creating &amp; Listing Worktrees</h1>
+    <p class="meta">
+      Part of
+      <a href="../MISSION.md">Git Worktrees for Parallel Agentic Coding</a>
+      &nbsp;|&nbsp; ~15 minute read + practice
+    </p>
+
+    <div class="nav">
+      <a href="0000-git-worktrees-mental-model.html"
+        >← Lesson 0000: The Mental Model</a
+      >
+      <a href="0002-working-in-parallel.html"
+        >Lesson 0002: Working in Parallel →</a
+      >
+    </div>
+
+    <div class="hook">
+      <strong>You've seen the diagram. Now build it.</strong> In this lesson
+      you'll create your first worktree, inspect every file it creates, and
+      verify with your own eyes what's shared and what's isolated. By the end,
+      <code>git worktree list</code> will feel as natural as
+      <code>git branch</code>.
+    </div>
+
+    <h2>Your First Worktree</h2>
+
+    <p>
+      Open a terminal in any git repository — your current project is perfect.
+      We'll create a worktree for a new branch called
+      <code>experiment/lesson-0001</code>.
+    </p>
+
+    <div class="try">
+      <pre><code># From the root of your repo:
+git worktree add ../my-project-lesson-0001 -b experiment/lesson-0001</code></pre>
+      <p>
+        That's it. You now have a second working tree. Let's break down what
+        just happened.
+      </p>
+    </div>
+
+    <p>
+      The command
+      <code>git worktree add &lt;path&gt; -b &lt;branch&gt;</code> does three
+      things simultaneously:
+    </p>
+
+    <ol>
+      <li>
+        <strong>Creates a new branch</strong>
+        (<code>experiment/lesson-0001</code>) at the same commit as your current
+        HEAD
+      </li>
+      <li>
+        <strong>Creates a new directory</strong> at the path you specified, with
+        that branch checked out
+      </li>
+      <li>
+        <strong>Registers the worktree metadata</strong> in
+        <code>.git/worktrees/</code> so git knows it exists
+      </li>
+    </ol>
+
+    <p>If the branch already exists, omit <code>-b</code>:</p>
+
+    <pre><code>git worktree add ../path/to/worktree existing-branch</code></pre>
+
+    <h2>Inspecting What You Made</h2>
+
+    <p>
+      Let's examine the result piece by piece. Run each command and compare what
+      you see to the explanation below.
+    </p>
+
+    <h3>1. List all worktrees</h3>
+
+    <div class="try">
+      <pre><code>git worktree list</code></pre>
+    </div>
+
+    <p>You'll see output like:</p>
+
+    <pre><code>/Users/mark/dev/my-project                  abc1234 [main]
+/Users/mark/dev/my-project-lesson-0001      abc1234 [experiment/lesson-0001]</code></pre>
+
+    <p>
+      Each line shows: <strong>path</strong>, <strong>commit hash</strong>,
+      <strong>branch name</strong> (in brackets). The first line is your
+      <em>main worktree</em> — the original one. The second is your new
+      <em>linked worktree</em>. Both are at the same commit because
+      <code>-b</code> branched from HEAD.
+    </p>
+
+    <div class="insight">
+      <strong><code>git worktree list</code> is your dashboard.</strong> Run it
+      whenever you need to orient yourself. It answers "what worktrees exist,
+      where are they, and what branch is each on?" in one line. Make it a habit.
+    </div>
+
+    <h3>2. Examine the .git difference</h3>
+
+    <div class="try">
+      <pre><code># In your MAIN worktree:
+ls -la .git
+# Output: a directory full of subdirectories (objects/, refs/, etc.)
+
+# In the NEW worktree:
+ls -la ../my-project-lesson-0001/.git
+# Output: a single FILE, not a directory
+
+cat ../my-project-lesson-0001/.git
+# Output: gitdir: /Users/mark/dev/my-project/.git/worktrees/my-project-lesson-0001</code></pre>
+    </div>
+
+    <p>
+      This is the secret handshake from Lesson 0000 made concrete. The linked
+      worktree's <code>.git</code> is a <strong>pointer file</strong>, not a
+      directory. It tells git: "your real metadata lives over there, in the main
+      repo's <code>.git/worktrees/</code>."
+    </p>
+
+    <h3>3. Examine the worktree metadata</h3>
+
+    <div class="try">
+      <pre><code>ls -la .git/worktrees/my-project-lesson-0001/
+# Output: HEAD  ORIG_HEAD  commondir  gitdir  index  logs/</code></pre>
+    </div>
+
+    <p>
+      This directory is the linked worktree's
+      <strong>private git state</strong>. Let's look at each file:
+    </p>
+
+    <table>
+      <tr>
+        <th>File</th>
+        <th>What it holds</th>
+      </tr>
+      <tr>
+        <td><code>HEAD</code></td>
+        <td>Which branch/commit is checked out in this worktree</td>
+      </tr>
+      <tr>
+        <td><code>ORIG_HEAD</code></td>
+        <td>
+          The previous HEAD (used by <code>git reset</code>, merge conflict
+          recovery)
+        </td>
+      </tr>
+      <tr>
+        <td><code>index</code></td>
+        <td>The staging area — what's currently staged in this worktree</td>
+      </tr>
+      <tr>
+        <td><code>commondir</code></td>
+        <td>
+          Path back to the main <code>.git/</code> directory (one level up from
+          <code>worktrees/</code>)
+        </td>
+      </tr>
+      <tr>
+        <td><code>gitdir</code></td>
+        <td>Path to <em>this</em> metadata directory (self-referential)</td>
+      </tr>
+      <tr>
+        <td><code>logs/</code></td>
+        <td>
+          HEAD reflog for this worktree (separate from the main worktree's
+          reflog)
+        </td>
+      </tr>
+    </table>
+
+    <div class="insight">
+      <strong>Each worktree gets its own index and its own HEAD reflog.</strong>
+      This is why staged changes in one worktree don't leak into another — the
+      index is stored per-worktree. And the separate reflog means
+      <code>git reflog</code> in a linked worktree only shows that worktree's
+      history, not the whole repo's.
+    </div>
+
+    <h2>What Gets Shared: Prove It To Yourself</h2>
+
+    <p>
+      The mental model says the object database and refs are shared. Let's
+      verify.
+    </p>
+
+    <div class="try">
+      <pre><code># In the MAIN worktree:
+echo "hello from main" &gt;&gt; shared-test.txt
+git add shared-test.txt
+git commit -m "add shared-test from main worktree"
+
+# Now switch to the LINKED worktree:
+cd ../my-project-lesson-0001
+git log --oneline -3
+# You'll see the new commit immediately — no fetch needed.
+
+# The branch you created also appears everywhere:
+git branch --list 'experiment/*'
+# Shows experiment/lesson-0001 in both worktrees.</code></pre>
+    </div>
+
+    <p>
+      No <code>git fetch</code>. No <code>git pull</code>. The commit is visible
+      immediately because all worktrees share the same
+      <code>.git/objects/</code> and <code>.git/refs/</code>.
+    </p>
+
+    <h2>What Gets Isolated: Prove It To Yourself</h2>
+
+    <div class="try">
+      <pre><code># In the LINKED worktree:
+echo "staged in linked worktree" &gt;&gt; isolation-test.txt
+git add isolation-test.txt
+git status
+# Shows isolation-test.txt as staged
+
+# In the MAIN worktree:
+cd ../my-project
+git status
+# Shows nothing about isolation-test.txt — it's invisible here.</code></pre>
+    </div>
+
+    <p>
+      The staging area (index) is per-worktree. Untracked files are also
+      per-worktree — each worktree has its own set of files on disk. This is the
+      isolation you need for parallel work.
+    </p>
+
+    <h2>Removing a Worktree</h2>
+
+    <p>When you're done with a worktree, clean it up properly:</p>
+
+    <div class="try">
+      <pre><code># The safe way — refuses if there's uncommitted work:
+git worktree remove ../my-project-lesson-0001
+
+# Force removal (discards uncommitted changes):
+git worktree remove --force ../my-project-lesson-0001
+
+# Verify it's gone:
+git worktree list</code></pre>
+    </div>
+
+    <div class="warn">
+      <strong
+        >Never delete a worktree directory with <code>rm -rf</code>.</strong
+      >
+      If you manually delete the directory, git still has metadata in
+      <code>.git/worktrees/</code> — and <code>git worktree list</code> will
+      show a "prunable" entry. Use <code>git worktree prune</code> to clean
+      those up, or better yet, always use <code>git worktree remove</code>.
+    </div>
+
+    <h2>Quick Reference: The Core Commands</h2>
+
+    <table>
+      <tr>
+        <th>Command</th>
+        <th>What it does</th>
+      </tr>
+      <tr>
+        <td><code>git worktree add &lt;path&gt; &lt;branch&gt;</code></td>
+        <td>
+          Create a worktree at <code>path</code> with
+          <code>branch</code> checked out
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <code>git worktree add -b &lt;new-branch&gt; &lt;path&gt;</code>
+        </td>
+        <td>Create a worktree AND a new branch simultaneously</td>
+      </tr>
+      <tr>
+        <td>
+          <code>git worktree add --detach &lt;path&gt; &lt;commit&gt;</code>
+        </td>
+        <td>Create a worktree in detached HEAD at a specific commit</td>
+      </tr>
+      <tr>
+        <td><code>git worktree list</code></td>
+        <td>Show all worktrees with path, commit, and branch</td>
+      </tr>
+      <tr>
+        <td><code>git worktree list --porcelain</code></td>
+        <td>Machine-readable format (useful for scripts)</td>
+      </tr>
+      <tr>
+        <td><code>git worktree remove &lt;path&gt;</code></td>
+        <td>Safely remove a worktree (refuses if dirty)</td>
+      </tr>
+      <tr>
+        <td><code>git worktree remove --force &lt;path&gt;</code></td>
+        <td>Remove a worktree even if it has uncommitted changes</td>
+      </tr>
+      <tr>
+        <td><code>git worktree prune</code></td>
+        <td>Clean up metadata for worktrees whose directories were deleted</td>
+      </tr>
+    </table>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <h4>Quiz: What happens in each scenario?</h4>
+      <ol>
+        <li>
+          <p>
+            You run <code>git commit</code> in a linked worktree. Does the
+            commit appear in <code>git log</code> in the main worktree?
+          </p>
+          <p><em>Think about it, then click to reveal.</em></p>
+          <details>
+            <summary>Answer</summary>
+            <div class="answer">
+              Yes — immediately. Commits go into the shared
+              <code>.git/objects/</code> database and the branch ref is updated
+              in the shared <code>.git/refs/</code>. All worktrees see the new
+              commit instantly.
+            </div>
+          </details>
+        </li>
+        <li>
+          <p>
+            You run <code>git add</code> in a linked worktree. Does
+            <code>git status</code> in the main worktree show the staged file?
+          </p>
+          <p><em>Think about it, then click to reveal.</em></p>
+          <details>
+            <summary>Answer</summary>
+            <div class="answer">
+              No. The index (staging area) is stored per-worktree in
+              <code>.git/worktrees/&lt;name&gt;/index</code>. Each worktree has
+              its own staging area.
+            </div>
+          </details>
+        </li>
+        <li>
+          <p>
+            You run <code>git branch -D experiment/lesson-0001</code> in the
+            main worktree while the linked worktree still has that branch
+            checked out. What happens?
+          </p>
+          <p><em>Think about it, then click to reveal.</em></p>
+          <details>
+            <summary>Answer</summary>
+            <div class="answer">
+              Git refuses. You cannot delete a branch that is checked out in
+              <em>any</em> worktree. You must remove the worktree first (<code
+                >git worktree remove</code
+              >), which also handles the branch cleanup.
+            </div>
+          </details>
+        </li>
+      </ol>
+    </div>
+
+    <div class="recap">
+      <h3>Recap</h3>
+      <ul>
+        <li>
+          <code>git worktree add &lt;path&gt; -b &lt;branch&gt;</code> creates a
+          new branch and a new working tree in one command.
+        </li>
+        <li>
+          <code>git worktree list</code> is your dashboard — use it to orient
+          yourself across multiple worktrees.
+        </li>
+        <li>
+          The linked worktree's <code>.git</code> is a
+          <strong>file</strong> that points to
+          <code>.git/worktrees/&lt;name&gt;/</code> in the main repo.
+        </li>
+        <li>
+          Commits and branches are shared instantly; staged changes and
+          untracked files are isolated per worktree.
+        </li>
+        <li>
+          Always remove worktrees with <code>git worktree remove</code>, never
+          <code>rm -rf</code>.
+        </li>
+      </ul>
+    </div>
+
+    <div class="nav">
+      <a href="0000-git-worktrees-mental-model.html"
+        >← Lesson 0000: The Mental Model</a
+      >
+      <a href="0002-working-in-parallel.html"
+        >Lesson 0002: Working in Parallel →</a
+      >
+    </div>
+
+    <div class="footnote">
+      <p>
+        <strong>Primary source:</strong>
+        <a href="https://git-scm.com/docs/git-worktree#_commands"
+          >git-worktree — COMMANDS section</a
+        >. The <code>add</code>, <code>list</code>, <code>remove</code>, and
+        <code>prune</code> subcommands are documented here with all flags.
+      </p>
+      <p>
+        <strong>Ask questions:</strong> If the isolation model isn't clear, ask
+        your agent-teacher to walk through a specific scenario — e.g., "What
+        happens if I rebase in worktree A while worktree B has the old version
+        of the branch checked out?"
+      </p>
+    </div>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0000-git-worktrees-mental-model.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0002-working-in-parallel.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

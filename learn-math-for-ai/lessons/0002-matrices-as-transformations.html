@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0002: Matrices as Transformations</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: #2563eb;
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--accent-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.2rem 0;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0002 — Matrices as Transformations</h1>
+    <p class="meta">Linear Algebra Pillar · ~25 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> In the transformer, the attention
+      mechanism applies three matrix transformations to every token vector:
+      <strong>Q</strong> (query), <strong>K</strong> (key), and
+      <strong>V</strong> (value) projections. A matrix is a machine that takes a
+      vector and produces a new vector — transforming representation from one
+      space to another. This lesson teaches you what that <em>means</em>.
+    </div>
+
+    <div class="hook">
+      You've seen vectors — arrows in space. Now: what if you had a machine that
+      could take any arrow, rotate it, stretch it, shear it, or flip it — all
+      with a single operation? That machine is a <strong>matrix</strong>.
+    </div>
+
+    <h2>What Is a Matrix?</h2>
+
+    <p>
+      A matrix is a <strong>rectangular grid of numbers</strong>. A 2×3 matrix
+      has 2 rows and 3 columns:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+        font-size: 1.1rem;
+      "
+    >
+      A = ┌ ┐<br />
+      &nbsp;&nbsp;&nbsp;│ 2&nbsp;&nbsp;1&nbsp;&nbsp;0 │<br />
+      &nbsp;&nbsp;&nbsp;│ 0&nbsp;&nbsp;3&nbsp;&nbsp;1 │<br />
+      &nbsp;&nbsp;&nbsp;└ ┘
+    </p>
+
+    <p>
+      But a matrix isn't just a table of numbers.
+      <strong>A matrix is a function</strong> — it takes vectors as input and
+      produces vectors as output. Specifically, multiplying a matrix by a vector
+      applies a <strong>linear transformation</strong> to that vector.
+    </p>
+
+    <h2>Matrix × Vector: The Operation</h2>
+
+    <p>
+      To multiply a matrix <strong>A</strong> (m×n) by a vector
+      <strong>x</strong> (n×1), each row of A takes a dot product with x:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      ┌ ┐ ┌ ┐&nbsp;&nbsp;&nbsp;┌ ┐<br />
+      │ a b c │ │ x │&nbsp;&nbsp;│ ax + by + cz │<br />
+      │ d e f │ │ y │ = │ dx + ey + fz │<br />
+      └ ┘ │ z │&nbsp;&nbsp;│ gx + hy + iz │<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└
+      ┘&nbsp;&nbsp;└ ┘
+    </p>
+
+    <p>
+      Each output component is a <strong>weighted combination</strong> of all
+      input components. The matrix tells you how to mix the inputs to get the
+      outputs.
+    </p>
+
+    <div class="insight">
+      <strong>Key insight:</strong> Matrix × vector = linear combination. Each
+      row of the matrix defines a "recipe" — how much of each input component to
+      use. This is very close to what a neural network layer does: take inputs,
+      apply weighted combinations, produce outputs. The "weights" in a neural
+      network are literally the entries of a matrix.
+    </div>
+
+    <h2>What Transformations Look Like</h2>
+
+    <p>
+      In 2D, we can visualize what matrices do to the entire plane. Here are the
+      fundamental transformations:
+    </p>
+
+    <table>
+      <tr>
+        <th>Matrix</th>
+        <th>Transformation</th>
+        <th>What It Does</th>
+      </tr>
+      <tr>
+        <td>
+          <code>┌2 0┐<br />│0 2│<br />└ ┘</code>
+        </td>
+        <td>Uniform scaling</td>
+        <td>Stretches everything by ×2</td>
+      </tr>
+      <tr>
+        <td>
+          <code>┌2 0┐<br />│0 1│<br />└ ┘</code>
+        </td>
+        <td>Axis scaling</td>
+        <td>Stretches x-axis only — squares become rectangles</td>
+      </tr>
+      <tr>
+        <td>
+          <code>┌0 −1┐<br />│1 0│<br />└ ┘</code>
+        </td>
+        <td>90° rotation</td>
+        <td>Rotates every vector counterclockwise by 90°</td>
+      </tr>
+      <tr>
+        <td>
+          <code>┌−1 0┐<br />│0 −1│<br />└ ┘</code>
+        </td>
+        <td>Reflection</td>
+        <td>Flips everything through the origin</td>
+      </tr>
+      <tr>
+        <td>
+          <code>┌1 1┐<br />│0 1│<br />└ ┘</code>
+        </td>
+        <td>Shear</td>
+        <td>Tilts the plane — vertical lines slant</td>
+      </tr>
+      <tr>
+        <td>
+          <code>┌1 0┐<br />│0 0│<br />└ ┘</code>
+        </td>
+        <td>Projection</td>
+        <td>Collapses everything onto the x-axis</td>
+      </tr>
+    </table>
+
+    <div class="insight">
+      <strong
+        >Every linear transformation is a matrix. Every matrix is a linear
+        transformation.</strong
+      >
+      This equivalence — that a grid of numbers and a geometric operation are
+      the same thing — is one of the most powerful ideas in applied mathematics.
+      It means you can <em>think</em> geometrically (rotate, stretch, shear) but
+      <em>compute</em> algebraically (multiply rows by columns).
+    </div>
+
+    <h2>Why This Matters for the Transformer</h2>
+
+    <p>
+      In the attention mechanism, every token vector <strong>x</strong> goes
+      through three matrix transformations:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      <strong>q</strong> = W<sub>Q</sub> ·
+      <strong>x</strong>&nbsp;&nbsp;&nbsp;&nbsp; <strong>k</strong> = W<sub
+        >K</sub
+      >
+      · <strong>x</strong>&nbsp;&nbsp;&nbsp;&nbsp; <strong>v</strong> = W<sub
+        >V</sub
+      >
+      · <strong>x</strong>
+    </p>
+
+    <p>
+      Each W is a <strong>learned matrix</strong> — its numbers are discovered
+      during training. <strong>W<sub>Q</sub></strong> transforms x into a
+      "query" (what am I looking for?), <strong>W<sub>K</sub></strong> into a
+      "key" (what do I contain?), and <strong>W<sub>V</sub></strong> into a
+      "value" (what information do I carry?).
+    </p>
+
+    <p>
+      Same vector, three different transformations, three different purposes.
+      The matrices <em>are</em> the model's knowledge — they encode what the
+      model has learned about how to represent and relate information.
+    </p>
+
+    <div class="insight">
+      <strong
+        >When people say a model has "175 billion parameters," they're counting
+        matrix entries.</strong
+      >
+      GPT-3's 175B parameters are literally the numbers inside its matrices. The
+      matrices <em>are</em> the model. Understanding matrices as transformations
+      means understanding what those 175 billion numbers actually <em>do</em>.
+    </div>
+
+    <h2>Matrix Multiplication Preview</h2>
+
+    <p>
+      What happens when you apply one transformation, then another? You get a
+      <strong>composition of transformations</strong> — and that composition is
+      itself a matrix. Matrix × matrix = composition.
+    </p>
+
+    <p>
+      If <strong>B</strong> rotates and <strong>A</strong> scales, then
+      <strong>A·B</strong> first rotates then scales — in one matrix. This is
+      why matrix multiplication matters so much: it's how we combine
+      transformations. That's the next lesson.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: In the attention mechanism, the matrix W<sub>Q</sub> transforms a
+          token vector x into a query vector q. What is W<sub>Q</sub>,
+          fundamentally?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. A lookup table that maps tokens to queries</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. A learned linear transformation — a grid of numbers discovered
+          during training</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. A fixed mathematical constant like π</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. A random number generator</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: A 2×2 matrix with zeros everywhere except a 3 in the top-left
+          position transforms the vector [1, 1]. What is the result?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)">A. [1, 1]</span>
+        <span class="quiz-option" onclick="check('q2', 2)">B. [3, 0]</span>
+        <span class="quiz-option" onclick="check('q2', 3)">C. [3, 3]</span>
+        <span class="quiz-option" onclick="check('q2', 4)">D. [0, 0]</span>
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: If a model has "7 billion parameters," what are those parameters?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. Hyperparameters like learning rate and batch size</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. The entries of the model's matrices — the numbers that define its
+          transformations</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. The number of tokens in the training data</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. The number of different tasks the model can perform</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a
+        href="https://www.youtube.com/watch?v=kYB8IZa5AuE&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"
+        >Linear transformations and matrices — 3Blue1Brown (Essence of Linear
+        Algebra, Ch. 3)</a
+      >
+      <span style="display: block; margin-top: 0.4rem; color: var(--muted)"
+        >The best 10-minute geometric intuition for matrices as transformations
+        you will ever see.</span
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Strang, <em>Linear Algebra and Its Applications</em> — Sections 1.3–1.4
+      (Matrix Multiplication as Composition)
+    </div>
+
+    <div class="teacher-note">
+      If the connection between "matrix as grid of numbers" and "matrix as
+      transformation of space" isn't fully clicking, ask me. I can walk through
+      specific examples — pick any 2×2 matrix and I'll show you exactly what it
+      does to the plane.
+    </div>
+
+    <div class="prev-next">
+      <a href="0001-vectors-as-ai-atoms.html"
+        >← 0001: Vectors — The Atom of AI Data</a
+      >
+      <a href="0003-matrix-multiplication-engine.html"
+        >Next: 0003 — Matrix Multiplication: The Engine →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! W<sub>Q</sub> is a matrix of learned weights. During training, the model discovers what numbers to put in this matrix so that q = W<sub>Q</sub>·x produces a useful query representation.",
+              1: "It's not a lookup table — the same matrix is applied to every token vector. The matrix learns a general transformation, not token-specific mappings.",
+              3: "These matrices are learned, not fixed. Different trained models have different W<sub>Q</sub> matrices.",
+              4: "The entries are learned through optimization, not randomly generated at inference time.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The matrix [[3,0],[0,0]] applied to [1,1]: first row gives 3×1+0×1=3, second row gives 0×1+0×1=0 → [3,0]. The matrix collapses everything onto the x-axis, then stretches that axis by 3.",
+              1: "The matrix transforms [1,1] — it doesn't leave it unchanged.",
+              3: "The second row produces 0, not 3.",
+              4: "The first component is 3×1=3, not 0.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! A model's parameters are the entries of its weight matrices. A 7B parameter model has 7 billion numbers distributed across all its transformation matrices — W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>, feed-forward weights, embedding table, etc.",
+              1: "Hyperparameters like learning rate are configuration choices, not the parameters themselves.",
+              3: "Training data size is measured in tokens, not parameters.",
+              4: "The model learns to perform many tasks, but parameter count refers to matrix entries, not task count.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0001-vectors-as-ai-atoms.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0003-matrix-multiplication-engine.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

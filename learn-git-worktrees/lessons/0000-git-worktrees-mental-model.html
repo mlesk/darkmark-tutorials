@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0000: Git Worktrees — The Mental Model</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #059669;
+        --accent-light: #d1fae5;
+        --border: #e5e0d8;
+        --warn: #d97706;
+        --warn-light: #fef3c7;
+        --code-bg: #f3f2ef;
+        --radius: 6px;
+        --font-mono: "SF Mono", "Fira Code", "Menlo", "Consolas", monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .hook {
+        background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+        border-left: 4px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .warn {
+        background: var(--warn-light);
+        border-left: 3px solid var(--warn);
+        padding: 0.9rem 1.2rem;
+        margin: 1.2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .warn::before {
+        content: "⚠️ ";
+      }
+      .try {
+        background: var(--accent-light);
+        border: 1px solid #a7f3d0;
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .try::before {
+        content: "🧪 Try This: ";
+        font-weight: 700;
+        color: var(--accent);
+      }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.2rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.55;
+        margin: 1rem 0;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        font-size: inherit;
+      }
+      .diagram {
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.45;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .recap {
+        background: white;
+        border: 2px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2.5rem 0 1.5rem;
+        border-radius: var(--radius);
+      }
+      .recap h3 {
+        margin-top: 0;
+        color: var(--accent);
+      }
+      .next {
+        background: var(--accent-light);
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-weight: 600;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .footnote {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 3rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        width: 100%;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.55rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: var(--code-bg);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0000: Git Worktrees — The Mental Model</h1>
+    <p class="meta">
+      Part of
+      <a href="../MISSION.md">Git Worktrees for Parallel Agentic Coding</a>
+      &nbsp;|&nbsp; ~10 minute read
+    </p>
+
+    <div class="hook">
+      <strong>You have three AI coding agents running.</strong> One is fixing a
+      bug on <code>fix/login-timeout</code>, another is building a feature on
+      <code>feat/dark-mode</code>, and a third is doing code review on a PR
+      branch. Right now, switching between them means stash-pop-commit-juggle —
+      or cloning the repo three times. There's a better way.
+    </div>
+
+    <h2>What You Already Know</h2>
+
+    <p>
+      You know that a normal git repository has two parts that live together:
+    </p>
+
+    <div class="diagram">
+      my-project/ ← the <strong>working tree</strong> (your files, editable) ├──
+      .git/ ← the <strong>git directory</strong> (all the history, objects,
+      refs) │ ├── objects/ │ ├── refs/ │ ├── HEAD │ └── config ├── src/ ├──
+      package.json └── ...
+    </div>
+
+    <p>
+      When you <code>git checkout feature-branch</code>, git updates both your
+      working tree <em>and</em> the HEAD pointer inside <code>.git/</code>. Your
+      entire working tree flips to match the new branch. One working tree, one
+      branch at a time.
+    </p>
+
+    <p>
+      This is the <strong>single-working-tree constraint</strong>. It's why you
+      can't have two branches checked out simultaneously in the same repo — and
+      it's exactly the problem worktrees solve.
+    </p>
+
+    <h2>The Core Idea</h2>
+
+    <p>
+      A <strong>worktree</strong> is an additional working tree attached to the
+      same <code>.git</code> directory. Instead of one working tree, you have
+      many. Each one has its own branch checked out, its own staged changes, and
+      its own untracked files. But they all share one object database, one set
+      of refs, one history.
+    </p>
+
+    <div class="insight">
+      <strong>A worktree is not a clone.</strong> A clone copies the entire
+      <code>.git</code> directory — all objects, all refs, all history. A
+      worktree shares the <em>same</em> <code>.git</code>. Creating one is
+      instantaneous (no network, no copying) and they stay in sync automatically
+      — a branch created in one worktree is immediately visible in all others.
+    </div>
+
+    <h2>The Structure</h2>
+
+    <p>Here's what a repository with two additional worktrees looks like:</p>
+
+    <div class="diagram">
+      ~/dev/my-project/ ← <strong>main worktree</strong> (the original) ├──
+      .git/ ← the <em>real</em> git directory (shared by ALL worktrees) │ ├──
+      objects/ │ ├── refs/ │ ├── HEAD │ ├── config │ └── worktrees/ ← metadata
+      for linked worktrees │ ├── fix-login/ ← one entry per linked worktree │ │
+      ├── HEAD │ │ ├── index │ │ └── ... │ └── dark-mode/ │ ├── HEAD │ └── ...
+      ├── src/ └── package.json ~/dev/my-project-fix-login/ ←
+      <strong>linked worktree</strong> (branch: fix/login-timeout) ├── .git →
+      ~/dev/my-project/.git/worktrees/fix-login/ ← NOT a directory, a
+      <em>pointer file</em> ├── src/ ← independent checkout of fix/login-timeout
+      └── package.json ~/dev/my-project-dark-mode/ ←
+      <strong>linked worktree</strong> (branch: feat/dark-mode) ├── .git →
+      ~/dev/my-project/.git/worktrees/dark-mode/ ← points to its metadata ├──
+      src/ ← independent checkout of feat/dark-mode └── package.json
+    </div>
+
+    <p>Three critical observations from this diagram:</p>
+
+    <table>
+      <tr>
+        <th>What's shared</th>
+        <td>
+          The object database (<code>.git/objects/</code>), refs
+          (<code>.git/refs/</code>), config, hooks — everything in the real
+          <code>.git/</code> directory. A commit made in one worktree is
+          immediately reachable in all others. A branch created in one worktree
+          appears in <code>git branch</code> everywhere.
+        </td>
+      </tr>
+      <tr>
+        <th>What's isolated</th>
+        <td>
+          The working tree files, the index (staging area), and HEAD — each
+          worktree maintains its own versions of these in
+          <code>.git/worktrees/&lt;name&gt;/</code>. Staged changes in one
+          worktree are invisible to others. You can have different files open in
+          different editors pointed at different worktrees.
+        </td>
+      </tr>
+      <tr>
+        <th>The pointer file</th>
+        <td>
+          Each linked worktree has a <code>.git</code> <em>file</em> (not a
+          directory!) that contains a single line:
+          <code>gitdir: /path/to/main/.git/worktrees/name/</code>. This is how
+          git knows which worktree-specific metadata to use. Run
+          <code>cat .git</code> in a linked worktree to see it.
+        </td>
+      </tr>
+    </table>
+
+    <div class="warn">
+      <strong>One branch, one worktree.</strong> You cannot check out the same
+      branch in two worktrees simultaneously. Git enforces this because two
+      working trees on the same branch would create conflicting states. If you
+      try, git will refuse with a clear error message.
+    </div>
+
+    <h2>The Problem It Solves For You</h2>
+
+    <p>
+      Your parallel agentic coding workflow today probably looks like one of
+      these:
+    </p>
+
+    <h3>Option A: The Stash Juggle</h3>
+    <pre><code># Agent 1 finishes on feat/dark-mode
+git stash
+git checkout fix/login-timeout
+# Agent 2 works...
+git checkout feat/dark-mode
+git stash pop
+# Fragile. One mistake and you lose work.</code></pre>
+
+    <h3>Option B: The Clone Farm</h3>
+    <pre><code>git clone my-project my-project-agent-2
+git clone my-project my-project-agent-3
+# Slow. Disk-heavy. Branches get out of sync.
+# You need to git fetch in each clone to see new branches.</code></pre>
+
+    <h3>Option C: Worktrees (The Target State)</h3>
+    <pre><code># Spin up a worktree for each agent in under a second:
+git worktree add ../my-project-fix-login fix/login-timeout
+git worktree add ../my-project-dark-mode feat/dark-mode
+
+# Each agent gets its own directory, its own branch, its own staged state.
+# All share the same .git — no syncing needed.
+# When done:
+git worktree remove ../my-project-fix-login</code></pre>
+
+    <div class="insight">
+      <strong
+        >Worktrees make parallel work trivial because they eliminate the cost of
+        context-switching.</strong
+      >
+      Each worktree is a stable workspace that stays exactly as you left it. No
+      stash, no checkout, no "wait, which branch am I on?" — just
+      <code>cd</code> into the directory and you're there.
+    </div>
+
+    <h2>Key Commands (Preview)</h2>
+
+    <p>
+      We'll practice these properly in the next lesson. For now, here's the
+      shape of the API so you can see how simple it is:
+    </p>
+
+    <table>
+      <tr>
+        <th>Command</th>
+        <th>What it does</th>
+      </tr>
+      <tr>
+        <td><code>git worktree add &lt;path&gt; &lt;branch&gt;</code></td>
+        <td>
+          Create a new worktree at <code>path</code>, checking out
+          <code>branch</code>
+        </td>
+      </tr>
+      <tr>
+        <td><code>git worktree list</code></td>
+        <td>Show all worktrees and which branch each is on</td>
+      </tr>
+      <tr>
+        <td><code>git worktree remove &lt;path&gt;</code></td>
+        <td>Delete a worktree (safe — refuses if there's uncommitted work)</td>
+      </tr>
+      <tr>
+        <td><code>git worktree prune</code></td>
+        <td>
+          Clean up metadata for worktrees whose directories were manually
+          deleted
+        </td>
+      </tr>
+    </table>
+
+    <h2>The Three Rules That Prevent Surprises</h2>
+
+    <p>If you remember nothing else from this lesson, remember these:</p>
+
+    <ol>
+      <li>
+        <p>
+          <strong>Everything in <code>.git/</code> is shared.</strong> A
+          <code>git fetch</code> in any worktree updates refs for all worktrees.
+          A <code>git branch -D</code> in any worktree deletes the branch
+          everywhere. There is no per-worktree isolation at the git-database
+          level.
+        </p>
+      </li>
+      <li>
+        <p>
+          <strong>The working tree and index are private.</strong> Each worktree
+          has its own files on disk and its own staging area. You can have
+          <code>src/app.ts</code> open in three different editors with three
+          different versions, and git handles it correctly.
+        </p>
+      </li>
+      <li>
+        <p>
+          <strong
+            >The <code>.git</code> in a linked worktree is a file, not a
+            directory.</strong
+          >
+          This is the secret handshake. If you ever wonder "is this a main
+          worktree or a linked one?", run <code>cat .git</code>. A directory
+          means main worktree; a file containing <code>gitdir:</code> means
+          linked.
+        </p>
+      </li>
+    </ol>
+
+    <div class="try">
+      Open a terminal and run <code>ls -la .git</code> in your current repo. Now
+      imagine that instead of a directory, it's a single file pointing somewhere
+      else. That mental shift —
+      <strong>.git as a pointer, not a container</strong> — is the foundation of
+      worktrees. When you're ready, proceed to
+      <a href="0001-creating-and-listing-worktrees.html"
+        >Lesson 0001: Creating &amp; Listing Worktrees</a
+      >
+      to start using them.
+    </div>
+
+    <div class="recap">
+      <h3>Recap</h3>
+      <ul>
+        <li>
+          A <strong>worktree</strong> is an additional working directory
+          attached to the same <code>.git</code> — not a clone, not a copy.
+        </li>
+        <li>
+          The <strong>object database and refs</strong> are shared across all
+          worktrees; the <strong>working tree and index</strong> are private to
+          each.
+        </li>
+        <li>
+          Linked worktrees use a <strong><code>.git</code> file</strong> (not a
+          directory) that points back to the main repo's metadata.
+        </li>
+        <li>
+          One branch can only be checked out in
+          <strong>one worktree at a time</strong>.
+        </li>
+        <li>
+          The entire API is four commands: <code>add</code>, <code>list</code>,
+          <code>remove</code>, <code>prune</code>.
+        </li>
+      </ul>
+    </div>
+
+    <div class="next">
+      → Next:
+      <a href="0001-creating-and-listing-worktrees.html"
+        >Lesson 0001: Creating &amp; Listing Worktrees</a
+      >
+      — Your first worktree, in under 30 seconds.
+    </div>
+
+    <div class="footnote">
+      <p>
+        <strong>Primary source:</strong>
+        <a href="https://git-scm.com/docs/git-worktree"
+          >git-worktree official documentation</a
+        >. Read the DESCRIPTION section — it's concise and well-written.
+      </p>
+      <p>
+        <strong>Ask questions:</strong> If anything in this lesson is unclear,
+        ask your agent-teacher. You can say "I don't understand the pointer
+        file" or "show me the difference between a clone and a worktree again"
+        and I'll explain it differently.
+      </p>
+    </div>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <span style="color:#ccc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</span>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0001-creating-and-listing-worktrees.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

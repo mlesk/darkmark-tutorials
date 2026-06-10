@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0003: Edge Cases & Debugging Worktrees</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #059669;
+        --accent-light: #d1fae5;
+        --border: #e5e0d8;
+        --warn: #d97706;
+        --warn-light: #fef3c7;
+        --code-bg: #f3f2ef;
+        --radius: 6px;
+        --font-mono: "SF Mono", "Fira Code", "Menlo", "Consolas", monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .hook {
+        background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+        border-left: 4px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .warn {
+        background: var(--warn-light);
+        border-left: 3px solid var(--warn);
+        padding: 0.9rem 1.2rem;
+        margin: 1.2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .warn::before {
+        content: "⚠️ ";
+      }
+      .try {
+        background: var(--accent-light);
+        border: 1px solid #a7f3d0;
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .try::before {
+        content: "🧪 Try This: ";
+        font-weight: 700;
+        color: var(--accent);
+      }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.2rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.55;
+        margin: 1rem 0;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        font-size: inherit;
+      }
+      .diagram {
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.45;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .recap {
+        background: white;
+        border: 2px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2.5rem 0 1.5rem;
+        border-radius: var(--radius);
+      }
+      .recap h3 {
+        margin-top: 0;
+        color: var(--accent);
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav a {
+        font-weight: 600;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .footnote {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 3rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        width: 100%;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.55rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: var(--code-bg);
+        font-weight: 700;
+      }
+      .scenario {
+        background: white;
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--warn);
+        padding: 1.2rem 1.4rem;
+        margin: 1.5rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .scenario h3 {
+        margin-top: 0;
+      }
+      .scenario .fix {
+        background: var(--accent-light);
+        padding: 0.8rem 1rem;
+        margin-top: 0.8rem;
+        border-radius: var(--radius);
+      }
+      .scenario .fix::before {
+        content: "🔧 Fix: ";
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0003: Edge Cases &amp; Debugging Worktrees</h1>
+    <p class="meta">
+      Part of
+      <a href="../MISSION.md">Git Worktrees for Parallel Agentic Coding</a>
+      &nbsp;|&nbsp; ~15 minute read + troubleshooting practice
+    </p>
+
+    <div class="nav">
+      <a href="0002-working-in-parallel.html"
+        >← Lesson 0002: Working in Parallel</a
+      >
+      <a href="0004-advanced-patterns.html">Lesson 0004: Advanced Patterns →</a>
+    </div>
+
+    <div class="hook">
+      <strong>Worktrees are simple until they're not.</strong> When you have
+      multiple agents operating in parallel, things will go wrong: a rebase in
+      one worktree breaks another, a branch gets force-pushed, a worktree
+      directory gets deleted by accident. This lesson gives you the diagnostic
+      toolkit to recognize and recover from every common failure mode.
+    </div>
+
+    <h2>Scenario 1: Rebase in One Worktree Breaks Another</h2>
+
+    <div class="scenario">
+      <h3>The Situation</h3>
+      <p>
+        Worktree A has <code>feat/dark-mode</code> checked out. You rebase
+        <code>feat/dark-mode</code> onto the latest <code>main</code> from the
+        main worktree. Now Worktree A's working tree is stale — it still
+        reflects the pre-rebase commits.
+      </p>
+
+      <div class="fix">
+        <pre><code># In Worktree A:
+git status
+# "Your branch and 'origin/feat/dark-mode' have diverged..."
+
+# The fix: reset to the new rebased state
+git reset --hard feat/dark-mode
+# Or, if you're not sure what happened:
+git reflog                    # see what changed
+git reset --hard &lt;correct-commit&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="insight">
+      <strong>Prevention beats recovery.</strong> Before rebasing a branch that
+      is checked out in another worktree, either (a) remove that worktree first,
+      or (b) communicate to whomever is working in that worktree that a rebase
+      is coming. In an agentic coding setup, this means: if Agent A is done,
+      remove its worktree before rebasing its branch.
+    </div>
+
+    <h2>Scenario 2: Branch Force-Pushed from Another Worktree</h2>
+
+    <div class="scenario">
+      <h3>The Situation</h3>
+      <p>
+        You amend a commit and force-push <code>feat/dark-mode</code> from the
+        main worktree. Worktree A still has the old version of the branch
+        checked out. Git reports the branch has diverged.
+      </p>
+
+      <div class="fix">
+        <pre><code># In Worktree A:
+git fetch origin
+git status
+# "Your branch is behind 'origin/feat/dark-mode' by 1 commit..."
+
+# Option 1: Accept the remote version (discard local):
+git reset --hard origin/feat/dark-mode
+
+# Option 2: Rebase local work on top of remote:
+git rebase origin/feat/dark-mode</code></pre>
+      </div>
+    </div>
+
+    <h2>Scenario 3: Detached HEAD in a Worktree</h2>
+
+    <div class="scenario">
+      <h3>The Situation</h3>
+      <p>
+        You created a worktree at a specific commit instead of a branch. This is
+        useful for reviewing a PR or testing an old release, but it means you're
+        in detached HEAD — commits made here will be lost if you switch away.
+      </p>
+
+      <div class="fix">
+        <pre><code># Check if you're in detached HEAD:
+git worktree list
+# Shows the worktree with a commit hash instead of a branch name
+
+# To save your work, create a branch from the current position:
+git switch -c my-new-branch
+
+# Alternatively, if you meant to be on a branch:
+git worktree add --detach ../path/to/worktree abc1234  # intentional
+git worktree add ../path/to/worktree existing-branch   # safer: on a branch</code></pre>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>Detached HEAD is not inherently bad.</strong> It's the right tool
+      for reviewing a specific commit (like a PR head) without creating a
+      branch. Just be aware that commits made in detached HEAD are only
+      reachable via the reflog until you attach a branch to them.
+    </div>
+
+    <h2>Scenario 4: Orphaned Worktree Metadata (Manual <code>rm -rf</code>)</h2>
+
+    <div class="scenario">
+      <h3>The Situation</h3>
+      <p>
+        You (or a script, or an agent) deleted a worktree directory with
+        <code>rm -rf</code> instead of <code>git worktree remove</code>. The
+        metadata in <code>.git/worktrees/</code> still exists, and
+        <code>git worktree list</code> shows a "prunable" entry.
+      </p>
+
+      <div class="fix">
+        <pre><code># Check what's prunable:
+git worktree list
+# Shows something like:
+# /path/to/deleted/worktree  abc1234 [feat/dark-mode] prunable
+
+# Clean up all prunable entries:
+git worktree prune
+
+# Or be explicit about what to prune:
+git worktree prune --expire 1.minute.ago  # prune entries older than 1 minute
+
+# Verify clean state:
+git worktree list</code></pre>
+      </div>
+    </div>
+
+    <h2>Scenario 5: "fatal: 'xyz' is already checked out"</h2>
+
+    <div class="scenario">
+      <h3>The Situation</h3>
+      <p>
+        You try to create a worktree for a branch that's already checked out in
+        another worktree (or in the main worktree). Git refuses.
+      </p>
+
+      <div class="fix">
+        <pre><code># Find which worktree has the branch:
+git worktree list | grep branch-name
+
+# Option 1: Remove the conflicting worktree:
+git worktree remove /path/to/conflicting/worktree
+
+# Option 2: Switch the conflicting worktree to a different branch:
+cd /path/to/conflicting/worktree
+git switch other-branch
+
+# Option 3 (rarely recommended): Create the new worktree
+# in detached HEAD at the same commit, then switch to the branch later:
+git worktree add --detach ../path/to/new/worktree $(git rev-parse branch-name)</code></pre>
+      </div>
+    </div>
+
+    <h2>Scenario 6: Stale Worktree After Branch Deletion</h2>
+
+    <div class="scenario">
+      <h3>The Situation</h3>
+      <p>
+        A worktree exists for a branch that has since been deleted. The worktree
+        is now on a dangling branch reference — it still works, but
+        <code>git worktree list</code> might show a detached state or an error.
+      </p>
+
+      <div class="fix">
+        <pre><code># Diagnose:
+git worktree list
+# Worktree at /path  abc1234 (detached HEAD)
+# or shows the old branch name with a warning
+
+# Recovery depends on what you want:
+# If the commits were merged — just remove the worktree:
+git worktree remove /path/to/worktree
+
+# If you need to keep the work:
+cd /path/to/worktree
+git switch -c resurrected-branch  # re-attach to a new branch</code></pre>
+      </div>
+    </div>
+
+    <h2>Scenario 7: Merge Conflict Between Worktrees</h2>
+
+    <div class="scenario">
+      <h3>The Situation</h3>
+      <p>
+        Two agents, in two worktrees, modified the same file on different
+        branches. When you try to merge one into <code>main</code>, you get a
+        conflict. The conflict exists in the worktree where you ran the merge —
+        the other worktree is unaffected.
+      </p>
+
+      <div class="fix">
+        <pre><code># The merge worktree (usually main) shows the conflict:
+cd ~/dev/my-project
+git merge feat/dark-mode
+# CONFLICT (content): Merge conflict in src/styles.css
+
+# Resolve the conflict normally:
+# Edit src/styles.css, remove conflict markers
+git add src/styles.css
+git commit -m "merge: resolve dark mode style conflict"
+
+# The other worktree (feat/dark-mode) is unaware of the conflict.
+# It still has the pre-merge version of the file.
+# This is correct behavior — each worktree is independent.</code></pre>
+      </div>
+    </div>
+
+    <div class="insight">
+      <strong
+        >Conflicts are localized to the worktree where the merge
+        happens.</strong
+      >
+      This is actually a feature — Agent 2 can keep working in its worktree
+      while you resolve the conflict from Agent 1's merge in the main worktree.
+      The isolation works in your favor.
+    </div>
+
+    <h2>Debugging Toolkit: Commands That Save You</h2>
+
+    <p>
+      When something feels wrong, these commands will diagnose the issue 90% of
+      the time:
+    </p>
+
+    <table>
+      <tr>
+        <th>Command</th>
+        <th>What it tells you</th>
+      </tr>
+      <tr>
+        <td><code>git worktree list</code></td>
+        <td>
+          All worktrees, their branches, and whether any are prunable or
+          detached
+        </td>
+      </tr>
+      <tr>
+        <td><code>git worktree list --porcelain</code></td>
+        <td>
+          Same info in parseable format — useful in scripts that check worktree
+          health
+        </td>
+      </tr>
+      <tr>
+        <td><code>cat .git</code> (in the linked worktree)</td>
+        <td>
+          Confirms the pointer file is intact and pointing to the right metadata
+        </td>
+      </tr>
+      <tr>
+        <td><code>ls .git/worktrees/</code> (in the main worktree)</td>
+        <td>
+          Shows all registered worktree metadata — cross-reference with
+          <code>worktree list</code>
+        </td>
+      </tr>
+      <tr>
+        <td><code>git branch --list</code></td>
+        <td>See if the branch still exists (Scenario 6)</td>
+      </tr>
+      <tr>
+        <td><code>git reflog</code> (in the suspect worktree)</td>
+        <td>Trace what happened to HEAD in that specific worktree</td>
+      </tr>
+      <tr>
+        <td><code>git status</code> (in the suspect worktree)</td>
+        <td>Check for divergence, detached HEAD, or dirty state</td>
+      </tr>
+    </table>
+
+    <h2>Preventive Hygiene</h2>
+
+    <p>Make these habits and most edge cases never arise:</p>
+
+    <ol>
+      <li>
+        <strong
+          >Always remove with <code>git worktree remove</code>, never
+          <code>rm -rf</code>.</strong
+        >
+        This single habit prevents Scenario 4.
+      </li>
+      <li>
+        <strong
+          >Run <code>git worktree list</code> before rebasing or
+          force-pushing.</strong
+        >
+        If the branch is checked out elsewhere, either remove that worktree or
+        coordinate.
+      </li>
+      <li>
+        <strong>Prune periodically.</strong> A monthly
+        <code>git worktree prune</code> in your main repos catches orphaned
+        metadata before it accumulates.
+      </li>
+      <li>
+        <strong>Name worktree directories clearly.</strong> When you see
+        <code>~/dev/worktrees/fix-login-timeout</code> in
+        <code>git worktree list</code>, you know exactly what it is. When you
+        see <code>~/dev/worktrees/temp3</code>, you have to investigate.
+      </li>
+      <li>
+        <strong>Clean up after each coding session.</strong> When an agent's
+        work is merged, remove its worktree. Don't let stale worktrees
+        accumulate.
+      </li>
+    </ol>
+
+    <div class="recap">
+      <h3>Recap</h3>
+      <ul>
+        <li>
+          <strong>Rebase/force-push from another worktree</strong> — the
+          affected worktree's HEAD diverges; <code>git reset --hard</code> to
+          realign.
+        </li>
+        <li>
+          <strong>Detached HEAD</strong> — normal for commit-review worktrees;
+          use <code>git switch -c</code> to create a branch if you need to save
+          work.
+        </li>
+        <li>
+          <strong>Orphaned metadata</strong> — caused by
+          <code>rm -rf</code> instead of <code>git worktree remove</code>; fix
+          with <code>git worktree prune</code>.
+        </li>
+        <li>
+          <strong>Branch already checked out</strong> — git enforces the
+          one-branch-per-worktree rule; find the conflicting worktree with
+          <code>git worktree list | grep</code>.
+        </li>
+        <li>
+          <strong>Merge conflicts</strong> — localized to the worktree where the
+          merge runs; other worktrees are unaffected.
+        </li>
+        <li>
+          Your diagnostic toolkit is three commands:
+          <code>git worktree list</code>, <code>ls .git/worktrees/</code>, and
+          <code>cat .git</code>.
+        </li>
+      </ul>
+    </div>
+
+    <div class="nav">
+      <a href="0002-working-in-parallel.html"
+        >← Lesson 0002: Working in Parallel</a
+      >
+      <a href="0004-advanced-patterns.html">Lesson 0004: Advanced Patterns →</a>
+    </div>
+
+    <div class="footnote">
+      <p>
+        <strong>Primary source:</strong>
+        <a href="https://git-scm.com/docs/git-worktree#_bugs"
+          >git-worktree — BUGS section</a
+        >
+        and the
+        <a href="https://git-scm.com/docs/git-worktree#_details"
+          >DETAILS section</a
+        >
+        which covers the internal mechanics that explain most edge cases.
+      </p>
+      <p>
+        <strong>Ask questions:</strong> "What happens if I delete the
+        .git/worktrees/ metadata directory manually?" or "Can I recover a
+        worktree after the branch was force-pushed and I have uncommitted
+        changes?" — bring your weird scenarios to your agent-teacher.
+      </p>
+    </div>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0002-working-in-parallel.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0004-advanced-patterns.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

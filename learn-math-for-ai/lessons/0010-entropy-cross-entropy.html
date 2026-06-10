@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0010: Entropy & Cross-Entropy</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --prob: #7c3aed;
+        --prob-light: #ede9fe;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--prob-light);
+        border-left: 3px solid var(--prob);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--prob);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--prob-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      .formula-spotlight {
+        text-align: center;
+        background: var(--prob-light);
+        border: 2px solid var(--prob);
+        padding: 1.2rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 1.05rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0010 — Entropy & Cross-Entropy: How AI Measures Wrongness</h1>
+    <p class="meta">Probability Pillar · ~25 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> Every GPT model ever trained — GPT-1
+      through GPT-4, Claude, Gemini, Llama — was trained by minimizing
+      <strong>cross-entropy loss</strong>. The model's single training objective
+      is: "make the probability you assign to the actual next token as high as
+      possible." Cross-entropy is the mathematical function that measures how
+      badly the model is failing at this. If you understand cross-entropy, you
+      understand what every language model is optimizing.
+    </div>
+
+    <div class="hook">
+      How do you measure "wrongness"? If the correct next word is "cat" and your
+      model says P("cat") = 0.01, how wrong is that? If another model says
+      P("cat") = 0.73, how much better is it?
+      <strong>Cross-entropy</strong> answers this question — and it's the loss
+      function behind every generative AI system.
+    </div>
+
+    <h2>Information Content: How Surprising Is an Event?</h2>
+
+    <p>
+      The <strong>information content</strong> (or "surprisal") of an event with
+      probability p is:
+    </p>
+
+    <div class="formula-spotlight">I(p) = −log(p)</div>
+
+    <p>
+      Low probability → high surprise → high information content. If P("cat") =
+      0.01, the surprisal is −log(0.01) ≈ 4.6 (using natural log). If P("the") =
+      0.73, the surprisal is −log(0.73) ≈ 0.31 — much less surprising.
+    </p>
+
+    <p>
+      Why the log? It makes information <strong>additive</strong>: the
+      information from two independent events is the sum of their individual
+      informations. log(a·b) = log(a) + log(b). This is the defining property of
+      information.
+    </p>
+
+    <h2>Entropy: Expected Surprise</h2>
+
+    <p>
+      The <strong>entropy</strong> H(P) of a distribution P is the
+      <strong>expected surprisal</strong>:
+    </p>
+
+    <div class="formula-spotlight">
+      H(P) = −Σ P(x) · log P(x) = E[−log P(X)]
+    </div>
+
+    <p>
+      Entropy measures <strong>uncertainty</strong>. A fair coin (H = 1 bit) has
+      higher entropy than a biased coin that's heads 99% of the time (H ≈ 0.08
+      bits). Maximum entropy = uniform distribution (most uncertain). Minimum
+      entropy = deterministic (certain, H = 0).
+    </p>
+
+    <h2>Cross-Entropy: How Wrong Is Model Q About Data From P?</h2>
+
+    <p>
+      The <strong>cross-entropy</strong> H(P, Q) measures how surprised model Q
+      is by data drawn from true distribution P:
+    </p>
+
+    <div class="formula-spotlight">
+      H(P, Q) = −Σ P(x) · log Q(x) = −E<sub>P</sub>[log Q(X)]
+    </div>
+
+    <p>In language modeling:</p>
+    <ul>
+      <li>
+        <strong>P</strong> is the true distribution — the actual data (the
+        correct next token)
+      </li>
+      <li><strong>Q</strong> is the model's predicted distribution</li>
+      <li>
+        <strong>−log Q(correct_token)</strong> is how surprised the model is by
+        the correct answer
+      </li>
+      <li>Cross-entropy averages this surprise over all training examples</li>
+    </ul>
+
+    <div class="insight">
+      <strong>Training a language model = minimizing cross-entropy.</strong> The
+      model tries to make the correct token less surprising (higher probability
+      → lower −log(p)). If P("cat") goes from 0.01 to 0.73, cross-entropy drops
+      from 4.6 to 0.31 — the model improved. This single number drives all of
+      the model's learning.
+    </div>
+
+    <h2>Perplexity: Cross-Entropy in Human Terms</h2>
+
+    <p>
+      <strong>Perplexity</strong> = exp(cross-entropy). It can be interpreted as
+      "the effective number of choices the model is choosing between."
+      Perplexity of 10 means the model is as uncertain as if it were picking
+      uniformly from 10 equally likely options. Lower perplexity = better model.
+      GPT-4 achieves perplexity around 3–5 on standard benchmarks — it's
+      effectively choosing between just a few plausible tokens.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: A model assigns P(correct) = 0.001. What is the cross-entropy
+          contribution for this single example (using natural log)?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)">A. 0.001</span>
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. −ln(0.001) ≈ 6.9</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. 1 − 0.001 = 0.999</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)">D. 0</span>
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: Model A achieves perplexity 8, Model B achieves perplexity 4 on
+          the same test set. What does this tell you?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. Model B is about twice as fast</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. Model B is less uncertain — it's effectively choosing between 4
+          equally likely tokens vs. Model A's 8</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. Model A has more parameters</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. Perplexity doesn't measure model quality</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: Why does cross-entropy use −log(p) instead of just (1−p) as the
+          penalty?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. −log(p) is traditional — there's no mathematical reason</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. −log(p) makes information additive across independent events,
+          explodes as p→0 (infinite penalty for impossible events), and has deep
+          connections to coding theory and maximum likelihood</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. (1−p) gives the same results but is slower to compute</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. −log(p) ensures the loss is always positive</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a href="https://www.youtube.com/watch?v=ErfnhcEV1O8"
+        >A Short Introduction to Entropy, Cross-Entropy and KL-Divergence —
+        Aurélien Géron</a
+      >
+      (11 min)
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Blitzstein & Hwang, <em>Introduction to Probability</em> — skim Chapter 13
+      (Information Theory connections); also see Chapter 6 of Bishop's
+      <em>Pattern Recognition and Machine Learning</em>
+    </div>
+
+    <div class="teacher-note">
+      Cross-entropy is the "north star" of language model training. Every weight
+      update during training is trying to make this one number smaller. If you
+      ever see a training curve going down — that's cross-entropy decreasing. If
+      you see it plateau — the model stopped learning. It's the single most
+      important number in generative AI.
+    </div>
+
+    <div class="prev-next">
+      <a href="0009-random-variables-distributions.html"
+        >← 0009: Random Variables & Distributions</a
+      >
+      <a href="0011-kl-divergence.html">Next: 0011 — KL Divergence →</a>
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Cross-entropy for a single example = −ln(P(correct)). P=0.001 → −ln(0.001) ≈ 6.9. The model is very surprised by this answer — it assigned extremely low probability to the correct token.",
+              1: "0.001 is the probability, not the cross-entropy.",
+              3: "1−p is the error rate, not the cross-entropy.",
+              4: "Cross-entropy is only 0 when P(correct)=1 (perfect confidence in the right answer).",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Perplexity ≈ effective branching factor. Model B is as uncertain as choosing uniformly from 4 options; Model A from 8. Lower perplexity = the model has narrowed down the possibilities more effectively = better predictions.",
+              1: "Perplexity measures predictive quality, not speed.",
+              3: "Parameter count and perplexity are correlated but perplexity doesn't directly indicate parameter count.",
+              4: "Perplexity is the primary metric for language model quality (along with downstream task performance).",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The log has three critical properties: (1) additive for independent events (log(p₁p₂)=log p₁+log p₂), making total loss a sum over examples; (2) explodes to infinity as p→0, so the model is infinitely penalized for assigning zero probability to correct answers; (3) minimizing −log P(data) is equivalent to maximizing P(data) — maximum likelihood estimation.",
+              1: "There are deep mathematical reasons — information theory (Shannon, 1948) and maximum likelihood both converge on the log.",
+              3: "(1−p) is linear and doesn't penalize near-zero probabilities heavily enough.",
+              4: "(1−p) is also always non-negative for probabilities.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0009-random-variables-distributions.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0011-kl-divergence.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

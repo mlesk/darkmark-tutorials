@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0004: Vector Spaces, Bases & Embeddings</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: #2563eb;
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--accent-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0004 — Vector Spaces, Bases & Embeddings</h1>
+    <p class="meta">Linear Algebra Pillar · ~25 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> When a token enters the transformer,
+      it's converted into a vector via the <strong>embedding layer</strong> — a
+      learned mapping from discrete tokens to points in a continuous vector
+      space. But what does it <em>mean</em> to represent a word as a vector?
+      This lesson answers that question by teaching you what a vector space is,
+      what a basis does, and why learned embeddings are the foundation of
+      everything a transformer understands.
+    </div>
+
+    <div class="hook">
+      "King" is not a vector. It's a word — a discrete symbol. Yet inside a
+      transformer, "king" becomes a list of 768 numbers. How? And more
+      importantly: <em>why does that work?</em>
+    </div>
+
+    <h2>Vector Spaces</h2>
+
+    <p>
+      A <strong>vector space</strong> is the set of all possible vectors of a
+      given dimension. ℝ² is the 2D plane — every point (x, y) is a vector. ℝ⁷⁶⁸
+      is the 768-dimensional space where transformer embeddings live.
+    </p>
+
+    <p>What makes something a vector space? Two properties:</p>
+    <ol>
+      <li>
+        <strong>Closure under addition:</strong> v + w is still in the space
+      </li>
+      <li>
+        <strong>Closure under scalar multiplication:</strong> c·v is still in
+        the space
+      </li>
+    </ol>
+
+    <p>
+      That's it. These two properties mean you can navigate the space freely —
+      any linear combination of vectors stays in the space.
+    </p>
+
+    <h2>Bases: Coordinate Systems for Vector Spaces</h2>
+
+    <p>
+      A <strong>basis</strong> is a set of vectors that lets you describe any
+      vector in the space as a unique linear combination. In ℝ², the standard
+      basis is:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      e₁ = [1, 0]&nbsp;&nbsp;&nbsp;e₂ = [0, 1]
+    </p>
+
+    <p>
+      Any vector [x, y] = x·e₁ + y·e₂. The coordinates (x, y) are
+      <em>relative to this basis</em>. Choose a different basis, and the same
+      point gets different coordinates.
+    </p>
+
+    <div class="insight">
+      <strong
+        >Coordinates are not the vector — they're the vector's description in a
+        particular basis.</strong
+      >
+      Change the basis, and the coordinates change, even though the underlying
+      vector (the arrow in space) is the same. This distinction is critical for
+      understanding embeddings: the embedding space's basis is <em>learned</em>,
+      not given.
+    </div>
+
+    <h2>Embeddings: Learned Bases for Meaning</h2>
+
+    <p>
+      An <strong>embedding</strong> maps discrete items (words, tokens) to
+      vectors in a continuous space. The embedding layer in a transformer is
+      literally a matrix E of shape (vocab_size × d<sub>model</sub>). Token i →
+      row i of E.
+    </p>
+
+    <p>During training, the entries of E are adjusted so that:</p>
+    <ul>
+      <li>
+        Similar words end up <strong>close together</strong> (large dot product)
+      </li>
+      <li>
+        Dissimilar words end up <strong>far apart</strong> (small or negative
+        dot product)
+      </li>
+      <li>
+        Relationships become <strong>directions</strong> in the space:
+        vec("king") − vec("man") + vec("woman") ≈ vec("queen")
+      </li>
+    </ul>
+
+    <p>
+      The embedding space <em>learns a basis</em> where proximity equals
+      semantic similarity. The dimensions aren't pre-labeled ("dimension 37 =
+      royalty"). They emerge from training as the model discovers what
+      representations make the prediction task easier.
+    </p>
+
+    <div class="insight">
+      <strong>Embeddings are the model's "understanding."</strong> Everything
+      the transformer knows about language is encoded in how it places tokens in
+      vector space. The rest of the transformer — attention, feed-forward layers
+      — is about <em>transforming</em> these embeddings based on context. But
+      the embedding layer is where raw symbols first acquire meaning.
+    </div>
+
+    <h2>Positional Encoding: Adding "Where" to "What"</h2>
+
+    <p>
+      Vectors alone don't encode order. [0.5, −0.2, …] doesn't say "I'm the
+      third word." The transformer solves this by <strong>adding</strong> a
+      position-dependent vector to each token embedding:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      input_vector = embedding(token) + position_encoding(position)
+    </p>
+
+    <p>
+      The position encoding uses sine and cosine functions at different
+      frequencies, creating a unique pattern for each position. This addition is
+      why transformers can process all tokens in parallel — position information
+      is baked into the vectors themselves, not into the order of processing.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: What does the embedding layer of a transformer actually
+          <em>do</em> mathematically?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. It runs a neural network on each token</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. It looks up the token's ID in a matrix and returns the
+          corresponding row as a vector</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. It counts how many times each token appears</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. It applies the attention formula to each token individually</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: Why does the transformer add positional encodings instead of
+          processing tokens sequentially?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. Sequential processing would be too slow — adding position vectors
+          lets all tokens be processed in parallel</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. The model can't do addition, so this is the only option</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. Position is irrelevant — the encoding is just a historical
+          artifact</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. It's required by the GPU hardware</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: The embedding matrix E has shape (50,257 × 768) for a typical GPT
+          model. What does the number 50,257 represent?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. The maximum context length in tokens</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. The vocabulary size — the number of distinct tokens the model
+          knows</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. The number of attention heads</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. The number of transformer layers</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a
+        href="https://www.youtube.com/watch?v=k7RM-ot2NWY&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"
+        >Change of basis — 3Blue1Brown (Essence of Linear Algebra, Ch. 13)</a
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Strang, <em>Linear Algebra and Its Applications</em> — Sections 2.1–2.3
+      (Vector Spaces and Subspaces)
+    </div>
+
+    <div class="teacher-note">
+      The idea that "coordinates depend on your choice of basis" is subtle but
+      essential. If embeddings feel abstract, ask me to walk through a 2D
+      analogy: imagine placing words on a 2D map based on meaning, and using
+      (x,y) coordinates to represent them. The 768D embedding space works the
+      same way — just with more dimensions.
+    </div>
+
+    <div class="prev-next">
+      <a href="0003-matrix-multiplication-engine.html"
+        >← 0003: Matrix Multiplication</a
+      >
+      <a href="0005-projections-residuals.html"
+        >Next: 0005 — Projections & Residuals →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The embedding layer is simply a matrix lookup. Token ID 2457 → row 2457 of the embedding matrix. There's no computation — just retrieval. The 'intelligence' is in <em>what values</em> are in that row, learned during training.",
+              1: "No neural network runs here — it's a direct lookup.",
+              3: "Token counts don't produce vector representations.",
+              4: "Attention happens later in the pipeline. The embedding layer just produces the initial vectors.",
+            },
+          },
+          q2: {
+            correct: 1,
+            feedback: {
+              1: "Correct! By encoding position directly into the vectors (via addition), all tokens can be fed through attention simultaneously. This is the key innovation that makes transformers parallelizable, unlike RNNs which must process tokens one at a time.",
+              2: "The model can do addition — that's how the positional encoding is combined with the embedding.",
+              3: "Position is critical! 'The dog bit the man' vs 'The man bit the dog' — same words, different order, different meaning.",
+              4: "GPUs don't require positional encodings — it's a mathematical design choice for parallelism.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! 50,257 is GPT-2/3/4's vocabulary size: 50,000 byte-pair encoding tokens + 256 byte tokens + 1 end-of-text token. Every token the model can produce has a row in the embedding matrix and a corresponding entry in the output softmax.",
+              1: "Context length is typically 2,048–128,000, not 50,257.",
+              3: "Attention heads are typically 12–128 per layer, not 50,257.",
+              4: "Layers are typically 12–128, not 50,257.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0003-matrix-multiplication-engine.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0005-projections-residuals.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

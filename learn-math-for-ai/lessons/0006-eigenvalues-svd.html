@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0006: Eigenvalues, SVD & Matrix Secrets</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: #2563eb;
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--accent-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0006 — Eigenvalues, SVD & Matrix Secrets</h1>
+    <p class="meta">Linear Algebra Pillar · ~25 minutes · Final LA lesson</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> The weight matrices inside a transformer
+      are large (e.g., 4096×4096). Can we compress them without losing what
+      they've learned? Can we decompose them to understand what they "really
+      do"? The answers come from eigenvalues and the Singular Value
+      Decomposition (SVD). This lesson covers the ideas behind techniques like
+      LoRA (Low-Rank Adaptation) — the dominant method for efficiently
+      fine-tuning large language models — and why "low-rank" is a concept that
+      matters for every AI practitioner.
+    </div>
+
+    <div class="hook">
+      A matrix is a transformation of space. But what does that transformation
+      <em>actually do</em>? Rotate? Stretch? Collapse? The secret:
+      <strong
+        >every matrix can be decomposed into rotation → scaling →
+        rotation</strong
+      >. This is the Singular Value Decomposition, and it's the universal
+      skeleton key for understanding matrices.
+    </div>
+
+    <h2>Eigenvectors and Eigenvalues</h2>
+
+    <p>
+      When a matrix <strong>A</strong> multiplies a vector <strong>v</strong>,
+      most vectors change direction. But some special vectors —
+      <strong>eigenvectors</strong> — only get scaled:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      A·v = λ·v
+    </p>
+
+    <p>
+      The vector <strong>v</strong> is an eigenvector. Its direction is
+      unchanged by A. The scalar <strong>λ</strong> (lambda) is the eigenvalue —
+      how much v is stretched (λ > 1), shrunk (0 < λ < 1), flipped (λ < 0), or
+      annihilated (λ = 0).
+    </p>
+
+    <p>
+      Eigenvectors reveal the <strong>intrinsic axes</strong> of a
+      transformation — the directions that the matrix treats as special.
+    </p>
+
+    <div class="insight">
+      <strong
+        >If a matrix has a zero eigenvalue, it's collapsing some dimension of
+        space.</strong
+      >
+      Information is being lost. This matters for AI: when weight matrices have
+      near-zero eigenvalues, they're effectively lower-rank than their
+      dimensions suggest. This is why compression techniques work.
+    </div>
+
+    <h2>Singular Value Decomposition (SVD)</h2>
+
+    <p>
+      Not every matrix has a full set of eigenvectors. But
+      <strong>every</strong> matrix has an SVD:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      A = U · Σ · Vᵀ
+    </p>
+
+    <ul>
+      <li>
+        <strong>U</strong>: orthogonal matrix (rotation/reflection in output
+        space)
+      </li>
+      <li>
+        <strong>Σ</strong>: diagonal matrix of singular values (σ₁ ≥ σ₂ ≥ … ≥ σᵣ
+        > 0) — how much each dimension is stretched
+      </li>
+      <li>
+        <strong>Vᵀ</strong>: orthogonal matrix (rotation/reflection in input
+        space)
+      </li>
+    </ul>
+
+    <p>
+      In words:
+      <strong
+        >every linear transformation is: rotate → scale each axis independently
+        → rotate again.</strong
+      >
+      The singular values tell you how much each axis gets stretched. If σₖ is
+      tiny, the k-th dimension barely matters — the matrix is effectively
+      lower-rank.
+    </p>
+
+    <div class="insight">
+      <strong>The SVD is the universal decomposition.</strong> It works for
+      every matrix — square or rectangular, invertible or not. The singular
+      values tell you the matrix's "effective dimension." If only 32 out of 4096
+      singular values are large, the matrix is effectively rank-32 — and you can
+      compress it dramatically.
+    </div>
+
+    <h2>Low-Rank Approximation and LoRA</h2>
+
+    <p>
+      Keep only the top-k singular values (and corresponding columns of U and
+      V). You get the <strong>best possible rank-k approximation</strong> of the
+      original matrix, measured by how much information is preserved.
+    </p>
+
+    <p>
+      <strong>LoRA (Low-Rank Adaptation)</strong> exploits this for fine-tuning:
+      instead of updating a full weight matrix W (d×d, millions of parameters),
+      LoRA learns two small matrices A (d×r) and B (r×d) where r ≪ d, and the
+      update is:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      W<sub>updated</sub> = W<sub>frozen</sub> + A·B
+    </p>
+
+    <p>
+      Since r might be 8 or 16 while d is 4096, the number of trainable
+      parameters drops from d² to 2dr — a reduction of 99.6%+. This is how
+      individuals can fine-tune models like Llama on a single GPU. The
+      mathematical bet: the <em>changes</em> needed during fine-tuning are
+      low-rank — they live in a small subspace of the full weight matrix.
+    </p>
+
+    <div class="insight">
+      <strong>LoRA works because fine-tuning adjustments are low-rank.</strong>
+      The pre-trained model already knows a lot. Adapting it to a new task only
+      requires small, structured changes — changes that can be represented as
+      the product of two skinny matrices. This is a direct application of the
+      low-rank approximation principle from SVD.
+    </div>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: An eigenvector v of matrix A satisfies A·v = λ·v. What does λ=0
+          imply?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. v is unchanged by A</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. A collapses v to the zero vector — v is in the nullspace of
+          A</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. A reflects v through the origin</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. v is the only eigenvector of A</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: LoRA fine-tunes a 4096×4096 weight matrix using two matrices A
+          (4096×16) and B (16×4096). How many trainable parameters does this use
+          vs. full fine-tuning?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. Same as full fine-tuning (16.8M)</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. ~131K vs. ~16.8M — about 0.8% of the full parameters</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. ~8.4M — about half</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. ~2M — about 12%</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: An AI startup claims their model is "rank-64" in its attention
+          matrices. What does this most likely mean?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. The model has exactly 64 attention heads</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. The weight matrices have been compressed or designed so that only
+          64 independent directions carry significant information</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. The model was trained on exactly 64 GPUs</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. The model processes exactly 64 tokens at a time</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a
+        href="https://www.youtube.com/watch?v=PFDu9oVAE-g&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"
+        >Eigenvectors and eigenvalues — 3Blue1Brown (Essence of Linear Algebra,
+        Ch. 14)</a
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Strang, <em>Linear Algebra and Its Applications</em> — Sections 5.1–5.3
+      (Eigenvalues) and 6.1–6.3 (SVD)
+    </div>
+
+    <div class="teacher-note">
+      This completes the linear algebra pillar. The probability pillar starts
+      next. If eigenvalues or SVD feel abstract, remember: they're tools for
+      answering "what does this matrix actually do?" — and in AI, the matrices
+      ARE the model. Understanding matrix structure means understanding model
+      structure.
+    </div>
+
+    <div class="prev-next">
+      <a href="0005-projections-residuals.html"
+        >← 0005: Projections & Residuals</a
+      >
+      <a href="0007-probability-fundamentals.html"
+        >Next: 0007 — Probability Fundamentals →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! A·v = 0·v = 0, so the eigenvector gets mapped to the zero vector. This means the matrix has a non-trivial nullspace — it's not invertible, and it loses information in that direction.",
+              1: "λ=0 means the vector is annihilated, not unchanged. λ=1 would mean unchanged.",
+              3: "Reflection corresponds to λ=−1.",
+              4: "A matrix can have many eigenvectors; λ=0 eigenvectors just have a special property.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! A has 4096×16=65,536 params, B has 16×4096=65,536 params. Total: 131,072. Full fine-tuning: 4096×4096=16,777,216. Ratio: 131,072/16,777,216 ≈ 0.78%. This is why you can fine-tune Llama-7B on a laptop.",
+              1: "The whole point of LoRA is the parameter reduction.",
+              3: "Half would be ~8.4M — LoRA is far more efficient.",
+              4: "~2M is 4096×512 — still 15× more than LoRA with r=16.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Rank is the number of linearly independent rows/columns — the effective dimension of the transformation. A rank-64 matrix (out of possibly 4096) means only 64 directions carry meaningful information. This is either achieved through SVD-based compression or designed into the architecture — and is the basis of efficient fine-tuning methods like LoRA.",
+              1: "Attention heads and matrix rank are different concepts.",
+              3: "GPU count during training doesn't determine matrix rank.",
+              4: "Token count is unrelated to matrix rank.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0005-projections-residuals.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0007-probability-fundamentals.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

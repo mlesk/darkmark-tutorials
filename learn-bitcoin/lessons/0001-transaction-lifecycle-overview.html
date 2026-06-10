@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0001 — Bitcoin Transaction Lifecycle Overview</title>
+    <style>
+      :root {
+        --bg: #fffef9;
+        --text: #1a1a1a;
+        --muted: #5e5e5e;
+        --accent: #f7931a;
+        --accent-dark: #d97c0d;
+        --border: #e0dcd0;
+        --card-bg: #faf8f3;
+        --code-bg: #f4f1ea;
+        --highlight: #fff3e0;
+        --stage-1: #e3f2fd;
+        --stage-2: #e8f5e9;
+        --stage-3: #fff3e0;
+        --stage-4: #f3e5f5;
+        --stage-5: #fce4ec;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text);
+      }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 2.5rem 0 0.75rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 2px solid var(--accent);
+        color: var(--text);
+      }
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 1.75rem 0 0.5rem;
+        color: var(--text);
+      }
+      p {
+        margin: 0.75rem 0;
+      }
+      .lesson-meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .lesson-meta span {
+        margin-right: 1.25rem;
+      }
+      .stage {
+        border-left: 4px solid var(--accent);
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        background: var(--card-bg);
+        border-radius: 0 6px 6px 0;
+      }
+      .stage h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent-dark);
+        margin-bottom: 0.25rem;
+      }
+      .stage p {
+        margin: 0.3rem 0;
+        font-size: 0.95rem;
+      }
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin: 1.5rem 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      .diagram-box {
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        text-align: center;
+        font-size: 0.85rem;
+        background: white;
+        min-width: 100px;
+      }
+      .diagram-box.accent {
+        border-color: var(--accent);
+        background: var(--highlight);
+        font-weight: 600;
+      }
+      .diagram-arrow {
+        display: flex;
+        align-items: center;
+        color: var(--muted);
+        font-size: 1.2rem;
+        padding: 0 0.25rem;
+      }
+      .flow-line {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.75rem 0;
+        flex-wrap: wrap;
+      }
+      .flow-node {
+        border: 1.5px solid var(--border);
+        border-radius: 6px;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.82rem;
+        background: white;
+        white-space: nowrap;
+      }
+      .flow-arrow {
+        color: var(--accent);
+        font-weight: bold;
+      }
+      details {
+        margin: 1rem 0;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.6rem 1rem;
+        background: var(--card-bg);
+      }
+      details summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--accent-dark);
+      }
+      details p {
+        font-size: 0.92rem;
+      }
+      ul,
+      ol {
+        margin: 0.5rem 0 0.5rem 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      code {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.82em;
+        background: #2d2d2d;
+        color: #e8e8e8;
+        padding: 1rem 1.2rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        line-height: 1.5;
+        margin: 1rem 0;
+      }
+      .callout {
+        background: var(--highlight);
+        border: 1px solid var(--accent);
+        border-left: 4px solid var(--accent);
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        font-size: 0.93rem;
+      }
+      .callout strong {
+        color: var(--accent-dark);
+      }
+      cite {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.3rem;
+      }
+      cite a {
+        color: var(--muted);
+      }
+      .quiz {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.5rem 0;
+      }
+      .quiz h4 {
+        margin-bottom: 0.6rem;
+      }
+      .quiz label {
+        display: block;
+        margin: 0.35rem 0;
+        cursor: pointer;
+        font-size: 0.93rem;
+      }
+      .quiz input[type="radio"] {
+        margin-right: 0.5rem;
+      }
+      .quiz button {
+        margin-top: 0.6rem;
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .quiz button:hover {
+        background: var(--accent-dark);
+      }
+      .quiz .feedback {
+        margin-top: 0.6rem;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        display: none;
+      }
+      .quiz .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .feedback.incorrect {
+        background: #fce4ec;
+        color: #c62828;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      .nav a {
+        color: var(--accent-dark);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .nav a:hover {
+        text-decoration: underline;
+      }
+      .stage-map {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.6rem;
+        margin: 1.25rem 0;
+      }
+      .stage-card {
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem;
+        text-align: center;
+        background: white;
+      }
+      .stage-card .num {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .stage-card .label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 0.2rem;
+      }
+      .stage-card .who {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+      }
+      @media (max-width: 600px) {
+        body {
+          padding: 1.5rem 1rem;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+        .diagram {
+          font-size: 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0001: Bitcoin Transaction Lifecycle Overview</h1>
+    <div class="lesson-meta">
+      <span>⏱ ~18 minutes</span>
+      <span>📅 2026-06-10</span>
+      <span>🎯 Bottom-Up • Overview</span>
+    </div>
+
+    <div class="callout">
+      <strong>Goal:</strong> Walk the full path of a Bitcoin transaction — from
+      wallet creation through broadcast, relay, mempool dwell, block template
+      construction, mining, and chain inclusion. By the end, you'll have a
+      mental map of every component and how they connect.
+    </div>
+
+    <h2>The Big Picture: 8 Stages</h2>
+
+    <p>
+      Every Bitcoin transaction passes through the same eight stages. Here's the
+      roadmap:
+    </p>
+
+    <div class="stage-map">
+      <div class="stage-card" style="background: var(--stage-1)">
+        <div class="num">1</div>
+        <div class="label">Create & Sign</div>
+        <div class="who">Wallet</div>
+      </div>
+      <div class="stage-card" style="background: var(--stage-2)">
+        <div class="num">2</div>
+        <div class="label">Broadcast</div>
+        <div class="who">Wallet → Node</div>
+      </div>
+      <div class="stage-card" style="background: var(--stage-3)">
+        <div class="num">3</div>
+        <div class="label">Relay</div>
+        <div class="who">P2P Network</div>
+      </div>
+      <div class="stage-card" style="background: var(--stage-4)">
+        <div class="num">4</div>
+        <div class="label">Mempool</div>
+        <div class="who">Every Full Node</div>
+      </div>
+      <div class="stage-card" style="background: var(--stage-5)">
+        <div class="num">5</div>
+        <div class="label">Block Template</div>
+        <div class="who">Miner / Pool</div>
+      </div>
+      <div class="stage-card" style="background: var(--stage-1)">
+        <div class="num">6</div>
+        <div class="label">Mining (PoW)</div>
+        <div class="who">ASICs</div>
+      </div>
+      <div class="stage-card" style="background: var(--stage-2)">
+        <div class="num">7</div>
+        <div class="label">Block Propagation</div>
+        <div class="who">P2P Network</div>
+      </div>
+      <div class="stage-card" style="background: var(--stage-3)">
+        <div class="num">8</div>
+        <div class="label">Confirmation</div>
+        <div class="who">All Nodes</div>
+      </div>
+    </div>
+
+    <div class="flow-line">
+      <div class="flow-node" style="background: var(--stage-1)">💻 Wallet</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: var(--stage-2)">
+        📡 P2P Network
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: var(--stage-3)">📋 Mempool</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: var(--stage-4)">
+        🏗 Block Template
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: var(--stage-5)">⛏ Mining</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: var(--stage-1)">
+        📦 New Block
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: var(--stage-2)">🔗 Chain</div>
+    </div>
+
+    <h2>Stage 1: Transaction Creation & Signing</h2>
+
+    <div class="stage">
+      <h4>Where it happens: The wallet</h4>
+      <p>
+        The wallet selects UTXOs (unspent transaction outputs) that belong to
+        the user, constructs outputs specifying the recipient and amount,
+        computes the fee, and signs each input with the corresponding private
+        key. The result is a serialized transaction — a blob of bytes ready for
+        the network.
+      </p>
+      <p>
+        <strong>Key detail:</strong> The signature covers nearly the entire
+        transaction (SIGHASH_ALL by default), making it tamper-proof. If anyone
+        changes an output amount or destination, the signature becomes invalid.
+      </p>
+      <cite
+        >Source:
+        <a
+          href="https://developer.bitcoin.org/devguide/transactions.html#introduction"
+          >Bitcoin Developer Guide — Transactions</a
+        ></cite
+      >
+    </div>
+
+    <div class="quiz" id="quiz1">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        What does the wallet sign <em>before</em> broadcasting the transaction?
+      </p>
+      <label
+        ><input type="radio" name="q1" value="a" /> Only the output
+        amounts</label
+      >
+      <label
+        ><input type="radio" name="q1" value="b" /> Each input with the
+        corresponding private key</label
+      >
+      <label
+        ><input type="radio" name="q1" value="c" /> The entire block
+        header</label
+      >
+      <label
+        ><input type="radio" name="q1" value="d" /> The recipient's public
+        key</label
+      >
+      <button onclick="checkQuiz('q1', 'b', 'quiz1-fb')">Submit</button>
+      <div class="feedback" id="quiz1-fb"></div>
+    </div>
+
+    <h2>Stage 2: Broadcast</h2>
+
+    <div class="stage">
+      <h4>Where it happens: Wallet → First peer node</h4>
+      <p>
+        The wallet sends the serialized transaction to one or more connected
+        full nodes via a <code>tx</code> message (or, if using the
+        <code>inv</code>/<code>getdata</code> flow, the node first announces it
+        has a new transaction via <code>inv</code>, the peer requests it with
+        <code>getdata</code>, and the wallet responds with <code>tx</code>). In
+        practice, wallets often use the simpler <code>tx</code> push: just send
+        the transaction directly.
+      </p>
+      <p>
+        <strong>Key detail:</strong> The wallet doesn't need to be a full node.
+        It only needs a connection to at least one peer that accepts and relays
+        transactions. SPV (simplified payment verification) wallets do exactly
+        this.
+      </p>
+      <cite
+        >Source:
+        <a
+          href="https://developer.bitcoin.org/devguide/p2p_network.html#transaction-broadcasting"
+          >Bitcoin Developer Guide — Transaction Broadcasting</a
+        ></cite
+      >
+    </div>
+
+    <h2>Stage 3: Relay (Gossip Protocol)</h2>
+
+    <div class="stage">
+      <h4>Where it happens: The peer-to-peer network</h4>
+      <p>
+        Once a full node receives a valid transaction, it relays it to its
+        peers. The standard flow: Node A sends an <code>inv</code> (inventory)
+        message to each peer announcing the txid. Peers that don't already have
+        the transaction respond with <code>getdata</code>. Node A then sends the
+        full <code>tx</code> message. This gossip protocol ensures every full
+        node on the network sees every unconfirmed transaction within seconds.
+      </p>
+      <p>
+        <strong>Key detail:</strong> Each node independently validates the
+        transaction before relaying it. If a transaction fails validation (e.g.,
+        double-spend, invalid signature, non-standard script), the node rejects
+        it and does <em>not</em> relay it. It may also increase the peer's "ban
+        score" for sending invalid data.
+      </p>
+      <cite
+        >Source:
+        <a
+          href="https://developer.bitcoin.org/devguide/p2p_network.html#transaction-broadcasting"
+          >Bitcoin Developer Guide — Transaction Broadcasting</a
+        >;
+        <a href="https://en.bitcoin.it/wiki/Protocol_documentation#inv"
+          >Bitcoin Wiki — inv message</a
+        ></cite
+      >
+    </div>
+
+    <h2>Stage 4: Mempool Entry</h2>
+
+    <div class="stage">
+      <h4>Where it happens: Every full node's memory</h4>
+      <p>
+        After validating a transaction, each full node adds it to its
+        <strong>mempool</strong> (memory pool) — an in-memory set of unconfirmed
+        transactions eligible for inclusion in the next block. The mempool is
+        <em>not</em> shared or synchronised globally; every node has its own.
+        Transactions stay in the mempool until they are either mined into a
+        block, evicted (if a higher-fee transaction pushes them out), or expire.
+      </p>
+      <p><strong>Key details:</strong></p>
+      <ul>
+        <li>
+          <strong>Fee competition:</strong> Miners select transactions by
+          feerate (satoshis per virtual byte, sat/vB). Higher feerate = higher
+          priority.
+        </li>
+        <li>
+          <strong>Replace-by-Fee (RBF, BIP 125):</strong> A sender can replace
+          their unconfirmed transaction with a new version that pays a higher
+          fee. Useful if the original is stuck.
+        </li>
+        <li>
+          <strong>Child-Pays-for-Parent (CPFP):</strong> If a transaction is
+          stuck with too low a fee, a recipient can create a "child" transaction
+          spending its output with a high fee, incentivizing miners to include
+          both.
+        </li>
+        <li>
+          <strong>Mempool is ephemeral:</strong> If a node restarts, its mempool
+          is wiped. Transactions must be re-broadcast.
+        </li>
+      </ul>
+      <cite
+        >Source:
+        <a
+          href="https://developer.bitcoin.org/devguide/p2p_network.html#memory-pool"
+          >Bitcoin Developer Guide — Memory Pool</a
+        >;
+        <a href="https://bitcoinops.org/en/topics/replace-by-fee/"
+          >Optech — Replace-by-Fee</a
+        >;
+        <a href="https://bitcoinops.org/en/topics/cpfp/">Optech — CPFP</a></cite
+      >
+    </div>
+
+    <div class="callout">
+      <strong
+        >🧩 The mempool is a distributed, unsynchronised mess — by
+        design.</strong
+      >
+      There is no "the" mempool. Every node has its own, with different
+      transactions at different times. Miners' mempools are the ones that
+      matter, because they decide what goes into blocks. This is why fee
+      estimation is inherently uncertain: you're guessing what thousands of
+      independent miners will do.
+    </div>
+
+    <h2>Stage 5: Block Template Construction</h2>
+
+    <div class="stage">
+      <h4>Where it happens: The miner (or mining pool operator)</h4>
+      <p>
+        A miner builds a <strong>block template</strong> — a candidate block —
+        by selecting transactions from their local mempool. This is done via the
+        <code>getblocktemplate</code> RPC (or Stratum protocol in pooled
+        mining). The miner software:
+      </p>
+      <ol>
+        <li>
+          <strong>Creates the coinbase transaction</strong> — the special first
+          transaction that pays the block reward (currently 3.125 BTC) plus
+          accumulated fees to the miner. The coinbase has no inputs; it
+          <em>creates</em> new bitcoin.
+        </li>
+        <li>
+          <strong>Selects transactions</strong> from the mempool, typically
+          sorted by feerate (highest first), packing them into the block up to
+          the 4 million weight unit limit (roughly 1 vMB for legacy-style
+          transactions, up to ~4 MB with SegWit).
+        </li>
+        <li>
+          <strong>Computes the Merkle root</strong> — a single 32-byte hash that
+          cryptographically commits to <em>all</em> transactions in the block.
+        </li>
+        <li>
+          <strong>Assembles the 80-byte block header:</strong> version, previous
+          block hash, Merkle root, timestamp, difficulty target (nBits), and an
+          initial nonce.
+        </li>
+      </ol>
+      <p>
+        <strong>Who builds the template?</strong> In solo mining, the miner's
+        own <code>bitcoind</code> builds it. In pooled mining, the
+        <strong>pool operator</strong> builds it and distributes the header (or
+        parts of it) to participating miners via Stratum. The pool decides which
+        transactions to include — individual pool miners have no say.
+      </p>
+      <cite
+        >Source:
+        <a
+          href="https://developer.bitcoin.org/devguide/mining.html#block-prototypes"
+          >Bitcoin Developer Guide — Block Prototypes</a
+        ></cite
+      >
+    </div>
+
+    <div class="quiz" id="quiz2">
+      <h4>🧠 Quick Check</h4>
+      <p>What is the coinbase transaction?</p>
+      <label
+        ><input type="radio" name="q2" value="a" /> A transaction that pays fees
+        to the exchange</label
+      >
+      <label
+        ><input type="radio" name="q2" value="b" /> A special transaction with
+        no inputs that creates new bitcoin and collects fees</label
+      >
+      <label
+        ><input type="radio" name="q2" value="c" /> The first transaction the
+        user ever made</label
+      >
+      <label
+        ><input type="radio" name="q2" value="d" /> A transaction stored on
+        Coinbase's servers</label
+      >
+      <button onclick="checkQuiz('q2', 'b', 'quiz2-fb')">Submit</button>
+      <div class="feedback" id="quiz2-fb"></div>
+    </div>
+
+    <h2>Stage 6: Mining (Proof of Work)</h2>
+
+    <div class="stage">
+      <h4>Where it happens: ASIC hardware</h4>
+      <p>
+        The 80-byte block header is sent to ASIC (Application-Specific
+        Integrated Circuit) miners. The ASIC iterates the
+        <strong>nonce</strong> field (a 32-bit counter, ~4 billion values) and
+        computes double-SHA256 on the header. If the resulting hash is
+        numerically below the network <strong>difficulty target</strong>, a
+        valid block is found.
+      </p>
+      <p><strong>Key details:</strong></p>
+      <ul>
+        <li>
+          The nonce space alone (2³² ≈ 4.3 billion) is too small for modern
+          difficulty — miners also modify the <strong>extra nonce</strong> in
+          the coinbase transaction, which changes the Merkle root, effectively
+          giving them a fresh nonce space to search. This is why block templates
+          are continuously refreshed.
+        </li>
+        <li>
+          The difficulty target adjusts every 2,016 blocks (~2 weeks) to keep
+          the average block time at 10 minutes.
+        </li>
+        <li>
+          At current network hashrate (~700 EH/s), the entire network is
+          searching roughly 7×10²⁰ hashes to find one block — an astronomically
+          large number.
+        </li>
+      </ul>
+      <cite
+        >Source:
+        <a href="https://developer.bitcoin.org/devguide/mining.html#solo-mining"
+          >Bitcoin Developer Guide — Solo Mining</a
+        >;
+        <a href="https://en.bitcoin.it/wiki/Block_hashing_algorithm"
+          >Bitcoin Wiki — Block Hashing Algorithm</a
+        ></cite
+      >
+    </div>
+
+    <h2>Stage 7: Block Propagation</h2>
+
+    <div class="stage">
+      <h4>Where it happens: P2P network (in reverse)</h4>
+      <p>
+        When a miner finds a valid block, they broadcast it to their peers. The
+        propagation path mirrors transaction relay: <code>inv</code> →
+        <code>getdata</code> → <code>block</code> (or <code>headers</code> →
+        <code>getdata</code> → <code>block</code> for headers-first nodes, or
+        direct <code>cmpctblock</code> for compact block relay per BIP 152).
+        Every full node that receives the block:
+      </p>
+      <ol>
+        <li>
+          <strong>Validates the block header:</strong> checks PoW, previous
+          block hash, timestamp, difficulty.
+        </li>
+        <li>
+          <strong>Validates every transaction:</strong> signature checks, no
+          double-spends, scripts execute correctly.
+        </li>
+        <li>
+          <strong>Updates its UTXO set:</strong> removes spent outputs, adds new
+          unspent outputs.
+        </li>
+        <li>
+          <strong>Removes confirmed transactions from its mempool.</strong>
+        </li>
+        <li><strong>Relays the block to its own peers.</strong></li>
+      </ol>
+      <p>
+        <strong>Compact block relay (BIP 152):</strong> Since peers likely
+        already have most transactions in their mempool, the block can be sent
+        as a header + short transaction IDs. Missing transactions are requested
+        separately. This dramatically reduces bandwidth — from ~1.5 MB to ~15 KB
+        in the common case.
+      </p>
+      <cite
+        >Source:
+        <a
+          href="https://developer.bitcoin.org/devguide/p2p_network.html#block-broadcasting"
+          >Bitcoin Developer Guide — Block Broadcasting</a
+        >;
+        <a href="https://bitcoinops.org/en/topics/compact-block-relay/"
+          >Optech — Compact Block Relay</a
+        ></cite
+      >
+    </div>
+
+    <h2>Stage 8: Confirmation & Chain Reorganisation</h2>
+
+    <div class="stage">
+      <h4>Where it happens: Every full node's chain state</h4>
+      <p>
+        Once a block is added to the tip of the chain, the transaction has
+        <strong>1 confirmation</strong>. Each subsequent block mined on top adds
+        another confirmation. Most wallets and services consider a transaction
+        "final" after 6 confirmations (a heuristic from Satoshi's whitepaper
+        based on the exponentially decreasing probability of a reorg).
+      </p>
+      <p>
+        <strong>Chain reorganisations (reorgs):</strong> If two miners find
+        valid blocks at similar times, the network temporarily has two competing
+        chain tips. Each node follows the one it saw first. When the next block
+        is found, it will build on <em>one</em> of the two tips — the chain with
+        the most accumulated work wins. The other tip becomes a
+        <strong>stale block</strong> (also called an orphan). Transactions in
+        stale blocks return to the mempool and can be included in future blocks.
+        One-confirmation reorgs happen regularly; deep reorgs (2+ blocks) are
+        rare.
+      </p>
+      <cite
+        >Source:
+        <a
+          href="https://developer.bitcoin.org/devguide/p2p_network.html#orphan-blocks"
+          >Bitcoin Developer Guide — Orphan Blocks</a
+        ></cite
+      >
+    </div>
+
+    <div class="quiz" id="quiz3">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        What happens to transactions in a stale block after a 1-block reorg?
+      </p>
+      <label
+        ><input type="radio" name="q3" value="a" /> They are permanently
+        lost</label
+      >
+      <label
+        ><input type="radio" name="q3" value="b" /> They return to the mempool
+        and can be mined again</label
+      >
+      <label
+        ><input type="radio" name="q3" value="c" /> They are refunded to the
+        sender's wallet</label
+      >
+      <label
+        ><input type="radio" name="q3" value="d" /> They become part of the
+        genesis block</label
+      >
+      <button onclick="checkQuiz('q3', 'b', 'quiz3-fb')">Submit</button>
+      <div class="feedback" id="quiz3-fb"></div>
+    </div>
+
+    <h2>Putting It All Together: A Concrete Example</h2>
+
+    <p>Alice sends 0.01 BTC to Bob. Here's the journey, end to end:</p>
+
+    <div class="flow-line">
+      <div class="flow-node">🔑 Alice's wallet selects UTXOs</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">✍️ Signs inputs with her private key</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">📤 Broadcasts tx to her node</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">🌐 Node validates and relays (inv→getdata→tx)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">📋 Enters mempools of ~50K nodes</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        ⛏ A miner includes it in a block template (high fee = picked fast)
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">🔨 ASICs hash ~10 min until valid nonce found</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">📦 Block broadcast to network</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        ✅ All nodes validate, update UTXO set, remove tx from mempool
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        🔗 Bob sees 1 confirmation; after ~60 min, 6 confirmations
+      </div>
+    </div>
+
+    <h2>What We Didn't Cover (Yet)</h2>
+
+    <p>
+      This is a flyover. Future lessons will zoom into each component in depth:
+    </p>
+    <ul>
+      <li>Lesson 0002: Transaction structure & the UTXO model</li>
+      <li>Lesson 0003: Script, signatures, and the stack machine</li>
+      <li>
+        Lesson 0004: Mempool mechanics in depth (fee estimation, RBF, CPFP,
+        eviction)
+      </li>
+      <li>Lesson 0005: Block template construction & miner coordination</li>
+      <li>Lesson 0006: Mining, difficulty, and the nonce space</li>
+      <li>
+        Lesson 0007: Block propagation, compact blocks, and chain reorganisation
+      </li>
+    </ul>
+
+    <div class="callout">
+      <strong>🔗 Primary source for deeper reading:</strong>
+      <a href="https://developer.bitcoin.org/devguide/transactions.html"
+        >Bitcoin Developer Guide — Transactions</a
+      >
+      — the canonical technical reference covering transaction structure, script
+      validation, and the P2P workflow. Read Chapters 4–7 of
+      <em>Mastering Bitcoin</em> (Antonopoulos) for the authoritative deep-dive.
+    </div>
+
+    <div class="callout">
+      <strong>💬 Have a question about any stage?</strong> Ask your
+      agent-teacher. The lesson is a map — the agent is your guide. Say "tell me
+      more about the mempool" or "how does compact block relay actually work?"
+      and we'll go deeper.
+    </div>
+
+    <h2>Navigate</h2>
+    <div class="nav">
+      <span>← Start</span>
+      <a href="0002-transaction-structure-utxo.html"
+        >Lesson 0002: Transaction Structure & UTXO Model →</a
+      >
+    </div>
+
+    <script>
+      function checkQuiz(qName, correctValue, fbId) {
+        const selected = document.querySelector(
+          `input[name="${qName}"]:checked`,
+        );
+        const fb = document.getElementById(fbId);
+        if (!selected) {
+          fb.textContent = "Please select an answer first.";
+          fb.className = "feedback show incorrect";
+          return;
+        }
+        if (selected.value === correctValue) {
+          fb.textContent = "✅ Correct!";
+          fb.className = "feedback show correct";
+        } else {
+          fb.textContent =
+            "❌ Not quite. Review the section above and try again.";
+          fb.className = "feedback show incorrect";
+        }
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <span style="color:#ccc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</span>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0002-transaction-structure-utxo.html" style="color:#f7931a;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

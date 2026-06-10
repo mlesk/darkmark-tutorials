@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0002: Working in Parallel with Worktrees</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #059669;
+        --accent-light: #d1fae5;
+        --border: #e5e0d8;
+        --warn: #d97706;
+        --warn-light: #fef3c7;
+        --code-bg: #f3f2ef;
+        --radius: 6px;
+        --font-mono: "SF Mono", "Fira Code", "Menlo", "Consolas", monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .hook {
+        background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+        border-left: 4px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .warn {
+        background: var(--warn-light);
+        border-left: 3px solid var(--warn);
+        padding: 0.9rem 1.2rem;
+        margin: 1.2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .warn::before {
+        content: "⚠️ ";
+      }
+      .try {
+        background: var(--accent-light);
+        border: 1px solid #a7f3d0;
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .try::before {
+        content: "🧪 Try This: ";
+        font-weight: 700;
+        color: var(--accent);
+      }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.2rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.55;
+        margin: 1rem 0;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        font-size: inherit;
+      }
+      .diagram {
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.45;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .recap {
+        background: white;
+        border: 2px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2.5rem 0 1.5rem;
+        border-radius: var(--radius);
+      }
+      .recap h3 {
+        margin-top: 0;
+        color: var(--accent);
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav a {
+        font-weight: 600;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .footnote {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 3rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        width: 100%;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.55rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: var(--code-bg);
+        font-weight: 700;
+      }
+      .step {
+        background: white;
+        border: 1px solid var(--border);
+        padding: 1.2rem 1.4rem;
+        margin: 1.2rem 0;
+        border-radius: var(--radius);
+        counter-increment: step;
+      }
+      .step h3 {
+        margin-top: 0;
+      }
+      .step h3::before {
+        content: "Step " counter(step) ": ";
+        color: var(--accent);
+      }
+      .lifecycle {
+        counter-reset: step;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0002: Working in Parallel with Worktrees</h1>
+    <p class="meta">
+      Part of
+      <a href="../MISSION.md">Git Worktrees for Parallel Agentic Coding</a>
+      &nbsp;|&nbsp; ~15 minute read + practice
+    </p>
+
+    <div class="nav">
+      <a href="0001-creating-and-listing-worktrees.html"
+        >← Lesson 0001: Creating &amp; Listing</a
+      >
+      <a href="0003-edge-cases-and-debugging.html"
+        >Lesson 0003: Edge Cases &amp; Debugging →</a
+      >
+    </div>
+
+    <div class="hook">
+      <strong>This is the lesson that changes your workflow.</strong> You'll
+      simulate three AI coding agents working on three different branches
+      simultaneously — each in its own worktree — and merge them all back. This
+      is the pattern you'll use every day.
+    </div>
+
+    <h2>The Pattern: One Worktree Per Agent Per Branch</h2>
+
+    <p>Your parallel agentic coding workflow follows a simple lifecycle:</p>
+
+    <div class="diagram">
+      Agent 1: feat/dark-mode → worktree: ~/dev/worktrees/dark-mode/ Agent 2:
+      fix/login-timeout → worktree: ~/dev/worktrees/fix-login/ Agent 3:
+      review/PR-42 → worktree: ~/dev/worktrees/review-pr-42/ All share:
+      ~/dev/my-project/.git/ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+      Agent 1 │ │ Agent 2 │ │ Agent 3 │ │ dark-mode │ │ fix-login │ │ review-42
+      │ └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ │ │ │ ▼ ▼ ▼ git worktree
+      git worktree git worktree add ... add ... add ... │ │ │ ▼ ▼ ▼
+      ~/dev/worktrees/ ~/dev/worktrees/ ~/dev/worktrees/ dark-mode/ fix-login/
+      review-pr-42/ │ │ │ └──────────────────┼──────────────────┘ │ Shared
+      .git/objects/ Shared .git/refs/
+    </div>
+
+    <div class="insight">
+      <strong>Worktrees solve the coordination problem between agents.</strong>
+      Without worktrees, you either serialize agents (slow), clone the repo
+      (disk-heavy, desynced), or juggle stashes (fragile). With worktrees, each
+      agent gets an isolated workspace that's always in sync with the shared git
+      database. No coordination needed — just <code>cd</code> into the right
+      directory.
+    </div>
+
+    <h2>Full Lifecycle Walkthrough</h2>
+
+    <p>
+      Open a terminal. We'll simulate the complete lifecycle: create → work →
+      merge → cleanup. Use a real repo — the <code>pocock-skills</code> repo
+      you're in right now works perfectly.
+    </p>
+
+    <div class="lifecycle">
+      <div class="step">
+        <h3>Spin Up Worktrees for Each Agent</h3>
+        <pre><code># Create a directory for your worktrees (do this once, ever):
+mkdir -p ~/dev/worktrees
+
+# Agent 1: building dark mode feature
+git worktree add ~/dev/worktrees/dark-mode -b feat/dark-mode
+
+# Agent 2: fixing a login timeout bug
+git worktree add ~/dev/worktrees/fix-login -b fix/login-timeout
+
+# Agent 3: reviewing PR #42
+git fetch origin pull/42/head:pr-42
+git worktree add ~/dev/worktrees/review-pr-42 pr-42
+
+# Verify your setup:
+git worktree list</code></pre>
+        <p>
+          Three worktrees created in under 3 seconds. No clones, no network, no
+          waiting.
+        </p>
+      </div>
+
+      <div class="step">
+        <h3>Simulate Concurrent Work</h3>
+        <p>
+          In a real workflow, each AI agent would work in its own directory.
+          Let's simulate that manually — imagine each <code>cd</code> block is a
+          different agent process:
+        </p>
+        <pre><code># === AGENT 1: Dark Mode (Terminal 1) ===
+cd ~/dev/worktrees/dark-mode
+echo ".dark { background: #111; }" &gt;&gt; dark-mode.css
+git add dark-mode.css
+git commit -m "feat: add dark mode stylesheet"
+
+# === AGENT 2: Login Fix (Terminal 2) ===
+cd ~/dev/worktrees/fix-login
+echo "// increase timeout to 30s" &gt;&gt; auth.ts
+git add auth.ts
+git commit -m "fix: extend login timeout to 30s"
+
+# === AGENT 3: PR Review (Terminal 3) ===
+cd ~/dev/worktrees/review-pr-42
+# Just reading code, making notes...
+echo "LGTM on the refactor, one nit about error handling" &gt; review-notes.md</code></pre>
+        <p>
+          All three worktrees are operating <strong>independently</strong>. No
+          stashing, no context switching. Each agent stays in its own directory
+          with its own branch, its own staged changes, its own untracked files.
+        </p>
+      </div>
+
+      <div class="step">
+        <h3>Verify Isolation and Sharing</h3>
+        <pre><code># In the main worktree — see all commits from all agents:
+cd ~/dev/my-project
+git log --all --oneline --graph -10
+
+# The commits from Agent 1 and Agent 2 are visible because
+# they share the same object database. No fetch needed.
+
+# But their working trees are isolated:
+ls dark-mode.css auth.ts review-notes.md
+# None of these files exist here — they're in the other worktrees.</code></pre>
+      </div>
+
+      <div class="step">
+        <h3>Merge Back to Main</h3>
+        <pre><code># Merge Agent 1's work (dark mode):
+git merge feat/dark-mode
+
+# Merge Agent 2's work (login fix):
+git merge fix/login-timeout
+
+# Agent 3's review notes stay in the review worktree —
+# no merge needed since it wasn't a code change.</code></pre>
+      </div>
+
+      <div class="step">
+        <h3>Clean Up</h3>
+        <pre><code># Remove the worktrees (branches persist unless you delete them):
+git worktree remove ~/dev/worktrees/dark-mode
+git worktree remove ~/dev/worktrees/fix-login
+git worktree remove ~/dev/worktrees/review-pr-42
+
+# Optionally delete merged branches:
+git branch -d feat/dark-mode
+git branch -d fix/login-timeout
+git branch -D pr-42  # -D because it's a fetched PR branch
+
+# Verify clean state:
+git worktree list
+# Should only show the main worktree.</code></pre>
+      </div>
+    </div>
+
+    <h2>Organizing Your Worktree Directory</h2>
+
+    <p>
+      A consistent location for worktrees prevents chaos. Choose a convention
+      and stick to it:
+    </p>
+
+    <table>
+      <tr>
+        <th>Strategy</th>
+        <th>Path pattern</th>
+        <th>Best for</th>
+      </tr>
+      <tr>
+        <td>Sibling directories</td>
+        <td><code>../my-project-&lt;feature&gt;</code></td>
+        <td>Quick one-offs, small number of worktrees</td>
+      </tr>
+      <tr>
+        <td>Dedicated dir</td>
+        <td><code>~/dev/worktrees/&lt;feature&gt;</code></td>
+        <td>Daily driver — keeps repo root clean</td>
+      </tr>
+      <tr>
+        <td>Per-project dir</td>
+        <td><code>~/dev/worktrees/&lt;project&gt;/&lt;feature&gt;</code></td>
+        <td>Multiple projects, many worktrees each</td>
+      </tr>
+    </table>
+
+    <div class="insight">
+      <strong>Use meaningful names for worktree directories.</strong> The
+      directory name doesn't have to match the branch name, but it should make
+      the purpose obvious at a glance. <code>~/dev/worktrees/fix-login</code> is
+      self-documenting; <code>~/dev/worktrees/wt-3</code> requires a
+      <code>git worktree list</code> to decode.
+    </div>
+
+    <h2>The Agent Script: Your Daily Driver</h2>
+
+    <p>
+      Once you've internalized the pattern, wrap it in a shell function. Add
+      this to your <code>~/.zshrc</code>:
+    </p>
+
+    <pre><code># Create a new worktree for agent work
+wt-new() {
+  local branch="$1"
+  local name="${2:-$(echo "$branch" | tr '/' '-')}"
+  local base="${WT_BASE:-$HOME/dev/worktrees}"
+
+  mkdir -p "$base"
+  git worktree add "$base/$name" ${3:+-b} "$branch" && cd "$base/$name"
+}
+
+# List all worktrees for the current repo
+wt-list() {
+  git worktree list
+}
+
+# Remove a worktree by its directory name
+wt-rm() {
+  local base="${WT_BASE:-$HOME/dev/worktrees}"
+  git worktree remove "$base/$1"
+}
+
+# Usage:
+# wt-new feat/dark-mode          # creates worktree at ~/dev/worktrees/feat-dark-mode
+# wt-new fix/login-timeout       # creates at ~/dev/worktrees/fix-login-timeout
+# wt-list                        # shows all worktrees
+# wt-rm feat-dark-mode           # removes worktree</code></pre>
+
+    <p>
+      This gives you a single-command workflow:
+      <code>wt-new feat/dark-mode</code> spins up a worktree, creates the
+      branch, and <code>cd</code>s you into it — ready to hand off to an agent.
+    </p>
+
+    <h2>The Constraints That Prevent Chaos</h2>
+
+    <p>
+      Worktrees give you parallel workspaces, but they come with guardrails that
+      protect you from yourself:
+    </p>
+
+    <table>
+      <tr>
+        <th>Constraint</th>
+        <th>Why it exists</th>
+      </tr>
+      <tr>
+        <td>One branch cannot be checked out in two worktrees</td>
+        <td>
+          Prevents conflicting working-tree states. If two worktrees had the
+          same branch, which one's HEAD is authoritative?
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Worktrees must be on different filesystems from the main worktree
+        </td>
+        <td>
+          Prevents confusion — linked worktrees should be clearly separate
+          directories. (You can't create a worktree inside the main worktree.)
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <code>git worktree remove</code> refuses if the worktree is dirty
+        </td>
+        <td>
+          Prevents accidental data loss. Use <code>--force</code> if you're
+          sure.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          A worktree cannot be removed if its branch is checked out nowhere else
+        </td>
+        <td>
+          Prevents orphaning commits. Git warns you to merge or delete the
+          branch first.
+        </td>
+      </tr>
+    </table>
+
+    <div class="warn">
+      <strong
+        >Don't rebase a branch that's checked out in another worktree.</strong
+      >
+      If Agent 1 is on <code>feat/dark-mode</code> in its worktree, and you
+      rebase <code>feat/dark-mode</code> from the main worktree, Agent 1's
+      worktree now has a diverged history. Git won't prevent this — it's a
+      coordination problem you need to manage. We'll cover this in
+      <a href="0003-edge-cases-and-debugging.html">Lesson 0003</a>.
+    </div>
+
+    <div class="recap">
+      <h3>Recap</h3>
+      <ul>
+        <li>
+          The pattern:
+          <strong>one worktree per agent, one branch per worktree</strong>. Spin
+          up, work concurrently, merge back, clean up.
+        </li>
+        <li>
+          Pick a consistent
+          <strong>worktree directory convention</strong> (<code
+            >~/dev/worktrees/</code
+          >
+          is a good default) and stick to it.
+        </li>
+        <li>
+          Wrap the workflow in
+          <strong>shell functions</strong> (<code>wt-new</code>,
+          <code>wt-list</code>, <code>wt-rm</code>) for single-command
+          operation.
+        </li>
+        <li>
+          The constraints (one branch per worktree, no nested worktrees,
+          dirty-protection on remove) are <strong>features, not bugs</strong> —
+          they prevent chaos.
+        </li>
+        <li>
+          <strong>Don't rebase or force-push a branch</strong> that another
+          worktree has checked out without coordinating.
+        </li>
+      </ul>
+    </div>
+
+    <div class="nav">
+      <a href="0001-creating-and-listing-worktrees.html"
+        >← Lesson 0001: Creating &amp; Listing</a
+      >
+      <a href="0003-edge-cases-and-debugging.html"
+        >Lesson 0003: Edge Cases &amp; Debugging →</a
+      >
+    </div>
+
+    <div class="footnote">
+      <p>
+        <strong>Primary source:</strong>
+        <a
+          href="https://github.blog/open-source/git/git-worktrees-a-practical-guide/"
+          >Git Worktrees: A Practical Guide — The GitHub Blog</a
+        >. The parallel workflow section is directly applicable.
+      </p>
+      <p>
+        <strong>Ask questions:</strong> "How do I handle merge conflicts between
+        worktrees?" or "What's the best way to organize worktrees when I have
+        10+ active branches?" — your agent-teacher can help you think through
+        your specific setup.
+      </p>
+    </div>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0001-creating-and-listing-worktrees.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0003-edge-cases-and-debugging.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

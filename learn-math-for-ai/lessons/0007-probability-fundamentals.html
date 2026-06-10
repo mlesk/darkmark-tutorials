@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0007: Probability Fundamentals</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --prob: #7c3aed;
+        --prob-light: #ede9fe;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--prob-light);
+        border-left: 3px solid var(--prob);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--prob);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--prob-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0007 — Probability: The Language of Uncertainty</h1>
+    <p class="meta">Probability Pillar · ~20 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> A transformer doesn't output "the next
+      word." It outputs a
+      <strong>probability distribution over 50,000+ possible next tokens</strong
+      >. When GPT says "I'm 73% sure the next word is 'the'," that's not a
+      metaphor — it's a literal probability, computed through the softmax
+      function. To understand what a transformer actually produces, you need to
+      understand probability.
+    </div>
+
+    <div class="hook">
+      AI systems deal with <strong>uncertainty</strong>. Which token comes next?
+      Is this image a cat or a dog? Will this user click? Probability is the
+      mathematical framework for reasoning about uncertainty — and it's the
+      native language of every generative AI system.
+    </div>
+
+    <h2>The Three Axioms of Probability</h2>
+
+    <p>All of probability theory rests on three axioms (Kolmogorov, 1933):</p>
+
+    <ol>
+      <li>
+        <strong>Non-negativity:</strong> P(A) ≥ 0 for any event A. Probabilities
+        can't be negative.
+      </li>
+      <li>
+        <strong>Unit measure:</strong> P(Ω) = 1. The probability of
+        <em>something</em> happening is 1.
+      </li>
+      <li>
+        <strong>Additivity:</strong> If A and B are mutually exclusive, P(A ∪ B)
+        = P(A) + P(B).
+      </li>
+    </ol>
+
+    <p>
+      That's it. Everything else — Bayes' theorem, expectation, distributions,
+      entropy — follows from these three rules.
+    </p>
+
+    <h2>Sample Space and Events</h2>
+
+    <p>
+      The <strong>sample space</strong> Ω is the set of all possible outcomes.
+      For a language model, Ω is the vocabulary — every token the model can
+      produce. An <strong>event</strong> is any subset of Ω. P(event) is the
+      total probability mass assigned to outcomes in that event.
+    </p>
+
+    <h2>Why Probability for AI?</h2>
+
+    <p>
+      AI systems face three kinds of uncertainty that probability handles
+      naturally:
+    </p>
+
+    <ol>
+      <li>
+        <strong>Aleatoric uncertainty</strong> — genuine randomness in the
+        world. Which word comes next in a sentence is inherently uncertain; many
+        continuations are valid. Probability quantifies this.
+      </li>
+      <li>
+        <strong>Epistemic uncertainty</strong> — what the model doesn't know. A
+        model trained on limited data should express lower confidence on
+        unfamiliar inputs. Probability provides calibrated confidence scores.
+      </li>
+      <li>
+        <strong>Learning from data</strong> — the core of machine learning.
+        "Find the parameters that make the training data most probable" is the
+        maximum likelihood principle behind virtually all generative AI
+        training.
+      </li>
+    </ol>
+
+    <div class="insight">
+      <strong>AI without probability is just pattern matching.</strong>
+      Probability is what turns "this looks similar to things I've seen" into "I
+      am 73% confident that the next token is 'the', 11% that it's 'a', and
+      0.01% that it's 'pterodactyl'." The numbers are meaningful — they're
+      calibrated statements about uncertainty.
+    </div>
+
+    <h2>Two Types of Probability</h2>
+
+    <p>
+      <strong>Frequentist:</strong> Probability = long-run frequency. "If I
+      rolled this die infinitely many times, how often would I get a 6?"
+    </p>
+    <p>
+      <strong>Bayesian:</strong> Probability = degree of belief. "Given what I
+      know, how confident am I that this email is spam?" Bayesian probability
+      updates beliefs with evidence — it's the framework behind modern AI.
+    </p>
+
+    <div class="insight">
+      <strong>AI uses both views.</strong> The training objective is frequentist
+      (maximize likelihood across the dataset). But the model's output — "I'm
+      73% confident in 'the'" — is a Bayesian statement of belief conditioned on
+      the input. The mathematics handles both seamlessly.
+    </div>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: A language model outputs probabilities for the next token. The
+          probabilities across all possible tokens must satisfy which condition?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. They must all be equal</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. They must be non-negative and sum to exactly 1</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. The highest must be at least 0.5</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. They can be any real numbers</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: A model assigns P("the" | context) = 0.73 and P("a" | context) =
+          0.11. What is P(not "the" and not "a" | context)?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)">A. 0.16</span>
+        <span class="quiz-option" onclick="check('q2', 2)">B. 0.84</span>
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. Cannot determine from this information alone</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. 0.08 (the product, since tokens are independent)</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: Why is probability the right language for AI output, rather than
+          just picking the single most likely answer?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. Picking the single most likely answer gives identical results and
+          is simpler</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. The probability distribution captures the model's uncertainty — it
+          tells you not just what's most likely, but how much more likely it is
+          than alternatives</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. It's required by the GPU hardware</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. It makes the output human-readable</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch: Blitzstein, Statistics 110 —
+      <a
+        href="https://www.youtube.com/watch?v=KbB0FjPg0mw&list=PL2SOU6wwxB0uwwH80KTQ6ht66KWxbzTIo"
+        >Lecture 1: Probability and Counting</a
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Blitzstein & Hwang, <em>Introduction to Probability</em> — Chapter 1
+      (Probability and Counting)
+    </div>
+
+    <div class="teacher-note">
+      If the axioms feel abstract, think concretely: every time you see a
+      probability bar in a ChatGPT response alternative, that's the model's
+      probability distribution made visible. The math behind that bar is exactly
+      what we're learning here.
+    </div>
+
+    <div class="prev-next">
+      <a href="0006-eigenvalues-svd.html">← 0006: Eigenvalues & SVD</a>
+      <a href="0008-conditional-probability-bayes.html"
+        >Next: 0008 — Conditional Probability & Bayes →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The softmax function ensures all outputs are non-negative and sum to 1 — satisfying both probability axioms. This is why softmax is the universal final layer of classification and language models.",
+              1: "Equal probabilities would be a uniform distribution — not what a trained model produces.",
+              3: "The model might be uncertain — the highest probability could be 0.01 if there are many plausible tokens.",
+              4: "The softmax constrains outputs to be valid probabilities.",
+            },
+          },
+          q2: {
+            correct: 1,
+            feedback: {
+              1: "Correct! P(not 'the' and not 'a') = 1 − 0.73 − 0.11 = 0.16. The complement rule: P(not A) = 1 − P(A). Since 'the' and 'a' are mutually exclusive (you can't output both as the next single token), the probabilities add.",
+              2: "0.84 = 1 − 0.16 — that's P('the' or 'a'), not P(neither).",
+              3: "We can determine it from the complement rule.",
+              4: "Tokens aren't independent here — they're mutually exclusive outcomes of a single draw.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The distribution tells a richer story. 'the' at 73% vs. 'a' at 11% is high confidence. 'the' at 15%, 'a' at 14%, 'an' at 13%... means the model is uncertain. This uncertainty signal is invaluable for downstream decisions — when should you trust the model? When should you ask a human?",
+              1: "Picking the max loses uncertainty information. '73% the' and '15% the' both produce 'the' as the argmax, but they mean very different things.",
+              3: "GPUs compute whatever operations you program — probability distributions are a design choice.",
+              4: "Human readability is a side benefit, not the mathematical reason.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0006-eigenvalues-svd.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0008-conditional-probability-bayes.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

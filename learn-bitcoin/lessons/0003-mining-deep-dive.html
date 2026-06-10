@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0003 — Mining Deep Dive: Consensus, Nonces & Security</title>
+    <style>
+      :root {
+        --bg: #fffef9;
+        --text: #1a1a1a;
+        --muted: #5e5e5e;
+        --accent: #f7931a;
+        --accent-dark: #d97c0d;
+        --border: #e0dcd0;
+        --card-bg: #faf8f3;
+        --code-bg: #f4f1ea;
+        --highlight: #fff3e0;
+        --kid-bg: #f0f7ff;
+        --kid-border: #90caf9;
+        --danger-bg: #fff5f5;
+        --danger-border: #ef9a9a;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text);
+      }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 2.5rem 0 0.75rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 2px solid var(--accent);
+        color: var(--text);
+      }
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 1.75rem 0 0.5rem;
+        color: var(--text);
+      }
+      p {
+        margin: 0.75rem 0;
+      }
+      .lesson-meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .lesson-meta span {
+        margin-right: 1.25rem;
+      }
+      .callout {
+        background: var(--highlight);
+        border: 1px solid var(--accent);
+        border-left: 4px solid var(--accent);
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        font-size: 0.93rem;
+      }
+      .callout strong {
+        color: var(--accent-dark);
+      }
+      .kid-box {
+        background: var(--kid-bg);
+        border: 2px solid var(--kid-border);
+        border-radius: 12px;
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .kid-box h3 {
+        font-size: 1.2rem;
+        margin-top: 0;
+        color: #1565c0;
+      }
+      .kid-box h3::before {
+        content: "🧒 ";
+      }
+      .kid-box p {
+        font-size: 1.02rem;
+        line-height: 1.8;
+      }
+      .danger-box {
+        background: var(--danger-bg);
+        border: 2px solid var(--danger-border);
+        border-radius: 12px;
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .danger-box h3 {
+        margin-top: 0;
+        color: #c62828;
+      }
+      .danger-box h3::before {
+        content: "🛡️ ";
+      }
+      .diagram {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.25rem 0;
+        overflow-x: auto;
+      }
+      .diagram pre {
+        background: transparent;
+        color: var(--text);
+        padding: 0;
+        margin: 0;
+        font-size: 0.82em;
+        line-height: 1.6;
+      }
+      .diagram table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 0.85em;
+      }
+      .diagram table td {
+        padding: 0.35rem 0.6rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .diagram table td:first-child {
+        white-space: nowrap;
+        color: var(--muted);
+        width: 1%;
+      }
+      .diagram table td:last-child {
+        word-break: break-all;
+        font-family: "SF Mono", "Menlo", monospace;
+      }
+      .flow-line {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.75rem 0;
+        flex-wrap: wrap;
+      }
+      .flow-node {
+        border: 1.5px solid var(--border);
+        border-radius: 6px;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.82rem;
+        background: white;
+        white-space: nowrap;
+      }
+      .flow-arrow {
+        color: var(--accent);
+        font-weight: bold;
+      }
+      .highlight-box {
+        border: 2px solid var(--accent);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.25rem 0;
+        background: var(--highlight);
+      }
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1.25rem 0;
+      }
+      .comparison .col {
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        background: white;
+      }
+      .comparison .col h4 {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        color: var(--accent-dark);
+      }
+      .comparison .col.bad {
+        border-color: var(--danger-border);
+        background: var(--danger-bg);
+      }
+      .comparison .col.bad h4 {
+        color: #c62828;
+      }
+      ul,
+      ol {
+        margin: 0.5rem 0 0.5rem 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      code {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.82em;
+        background: #2d2d2d;
+        color: #e8e8e8;
+        padding: 1rem 1.2rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        line-height: 1.5;
+        margin: 1rem 0;
+      }
+      .lineup {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin: 1rem 0;
+        font-family: "SF Mono", "Menlo", monospace;
+      }
+      .hash-char {
+        width: 2rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: white;
+      }
+      .hash-char.zero {
+        background: #4caf50;
+      }
+      .hash-char.nonzero {
+        background: #bdbdbd;
+      }
+      cite {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.3rem;
+      }
+      cite a {
+        color: var(--muted);
+      }
+      .quiz {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.5rem 0;
+      }
+      .quiz h4 {
+        margin-bottom: 0.6rem;
+      }
+      .quiz label {
+        display: block;
+        margin: 0.35rem 0;
+        cursor: pointer;
+        font-size: 0.93rem;
+      }
+      .quiz input[type="radio"] {
+        margin-right: 0.5rem;
+      }
+      .quiz button {
+        margin-top: 0.6rem;
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .quiz button:hover {
+        background: var(--accent-dark);
+      }
+      .quiz .feedback {
+        margin-top: 0.6rem;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        display: none;
+      }
+      .quiz .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .feedback.incorrect {
+        background: #fce4ec;
+        color: #c62828;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      .nav a {
+        color: var(--accent-dark);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .nav a:hover {
+        text-decoration: underline;
+      }
+      .security-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        margin: 1.25rem 0;
+      }
+      .security-card {
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 0.9rem;
+        background: white;
+      }
+      .security-card .icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.3rem;
+      }
+      .security-card h4 {
+        font-size: 0.95rem;
+        margin-bottom: 0.3rem;
+      }
+      .security-card p {
+        font-size: 0.85rem;
+        margin: 0.2rem 0;
+        color: var(--muted);
+      }
+      @media (max-width: 600px) {
+        .comparison {
+          grid-template-columns: 1fr;
+        }
+        body {
+          padding: 1.5rem 1rem;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0003: Mining Deep Dive — Consensus, Nonces &amp; Security</h1>
+    <div class="lesson-meta">
+      <span>⏱ ~20 minutes</span>
+      <span>📅 2026-06-10</span>
+      <span>🎯 Supplementary • Mining</span>
+    </div>
+
+    <div class="callout">
+      <strong>Goal:</strong> Answer three deep questions about Bitcoin mining:
+      (1) How does the network agree on <em>which</em> block to mine, without a
+      central coordinator? (2) What does "solving the nonce" actually mean —
+      explained so clearly a 10-year-old would get it. (3) What stops miners
+      from cheating, and why can't a rich attacker just take over the network?
+    </div>
+
+    <h2>Part 1: Who Decides Which Block to Mine?</h2>
+
+    <p>
+      This is one of the most important questions in Bitcoin. If thousands of
+      miners around the world are all hashing, who tells them
+      <em>which</em> block to work on? Who picks the transactions? Who
+      coordinates the race?
+    </p>
+
+    <div class="highlight-box">
+      <p>
+        <strong>The answer: nobody.</strong> There is no coordinator. No vote.
+        No round-robin. No leader election. Every miner independently builds
+        their own candidate block, and the network converges
+        <em>after the fact</em> — by everyone switching to build on whichever
+        valid block wins the race.
+      </p>
+    </div>
+
+    <h3>The Block Template: Built Locally by Each Miner</h3>
+
+    <p>
+      Every mining node runs <code>bitcoind</code> (or equivalent software) and
+      maintains its own mempool. When it's time to build a candidate block, the
+      miner (or mining pool operator) does this locally:
+    </p>
+
+    <ol>
+      <li>
+        <strong>Pick the chain tip:</strong> Identify the block at the tip of
+        the valid chain with the most accumulated proof-of-work. This is the
+        "previous block" your new block will build on.
+      </li>
+      <li>
+        <strong>Build the coinbase transaction:</strong> Create the special
+        first transaction that pays <em>your own address</em> the block subsidy
+        (3.125 BTC) plus all fees from the transactions you include. This is why
+        miners don't need to be told who to pay — they pay themselves.
+      </li>
+      <li>
+        <strong>Select transactions from your mempool:</strong> Sort by feerate
+        (highest sat/vB first), pack them in until you hit the 4 million weight
+        unit limit.
+      </li>
+      <li>
+        <strong>Compute the Merkle root</strong> — a single 32-byte hash
+        fingerprinting every transaction in the block.
+      </li>
+      <li>
+        <strong>Assemble the 80-byte block header</strong> (version, previous
+        block hash, Merkle root, timestamp, difficulty target, nonce = 0) and
+        start hashing.
+      </li>
+    </ol>
+
+    <div class="diagram">
+      <strong>Every miner builds a <em>different</em> block template:</strong>
+      <pre>
+Miner A in Texas          Miner B in Kazakhstan        Miner C in Japan
+┌─────────────────┐      ┌─────────────────┐        ┌─────────────────┐
+│ Coinbase → A's   │      │ Coinbase → B's   │        │ Coinbase → C's   │
+│   address        │      │   address        │        │   address        │
+│                 │      │                 │        │                 │
+│ Txs: A's mempool │      │ Txs: B's mempool │        │ Txs: C's mempool │
+│ (slightly diff)  │      │ (slightly diff)  │        │ (slightly diff)  │
+│                 │      │                 │        │                 │
+│ Merkle root:     │      │ Merkle root:     │        │ Merkle root:     │
+│  a1b2c3d4...     │      │  e5f6g7h8...     │        │  i9j0k1l2...     │
+└─────────────────┘      └─────────────────┘        └─────────────────┘
+      │                         │                           │
+      ▼                         ▼                           ▼
+  Hash away!                Hash away!                  Hash away!
+</pre
+      >
+    </div>
+
+    <div class="callout">
+      <strong>🔑 Key insight:</strong> Because every miner's coinbase pays a
+      <em>different address</em>, every miner's Merkle root is different. This
+      means every miner is hashing a <em>different block header</em>. They are
+      not racing to solve the same puzzle — they are each solving their own
+      puzzle, and the first one to find a valid solution wins the round.
+    </div>
+
+    <h3>How the Network Converges: The Emergent Consensus</h3>
+
+    <p>
+      There is no "agreement" before the block is found. The agreement happens
+      <strong>after</strong>:
+    </p>
+
+    <div class="flow-line">
+      <div class="flow-node" style="background: #e8f5e9">
+        ⛏ Miner finds valid block
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: #fff3e0">
+        📡 Broadcasts to peers
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: #e3f2fd">
+        ✅ Every node validates independently
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: #f3e5f5">
+        🔗 All miners switch to building on top of it
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background: #e8f5e9">
+        🔄 Next round begins
+      </div>
+    </div>
+
+    <p>
+      The <strong>longest valid chain</strong> (more precisely: the chain with
+      the most accumulated proof-of-work) is the one everyone follows. If you
+      try to mine on an old block, you're racing not just against one block, but
+      against the entire honest network that's already built on a newer tip. You
+      would need to outrun the combined hashrate of everyone else — which is why
+      it's rational to always build on the tip.
+    </p>
+
+    <cite
+      >Source:
+      <a
+        href="https://developer.bitcoin.org/devguide/mining.html#block-prototypes"
+        >Bitcoin Developer Guide — Block Prototypes</a
+      >;
+      <a href="https://bitcoin.org/bitcoin.pdf"
+        >Satoshi Nakamoto — Bitcoin Whitepaper, §3–4</a
+      ></cite
+    >
+
+    <div class="quiz" id="quiz1">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        Why does every miner end up hashing a <em>different</em> block header,
+        even if they all have identical mempools?
+      </p>
+      <label
+        ><input type="radio" name="q1" value="a" /> Because they use different
+        nonce starting values</label
+      >
+      <label
+        ><input type="radio" name="q1" value="b" /> Because the coinbase
+        transaction pays a different address for each miner, so the Merkle root
+        differs</label
+      >
+      <label
+        ><input type="radio" name="q1" value="c" /> Because they run different
+        versions of bitcoind</label
+      >
+      <label
+        ><input type="radio" name="q1" value="d" /> Because the network assigns
+        each miner a unique block ID</label
+      >
+      <button onclick="checkQuiz('q1', 'b', 'quiz1-fb')">Submit</button>
+      <div class="feedback" id="quiz1-fb"></div>
+    </div>
+
+    <h2>Part 2: Solving the Nonce — A 10-Year-Old's Guide</h2>
+
+    <div class="kid-box">
+      <h3>Imagine a Magic Dice Game</h3>
+
+      <p>
+        Let's play a game. I'm thinking of a giant 256-sided die (well,
+        actually, a number so big it has 78 digits). Your job is to roll the die
+        over and over until you get a number
+        <strong>smaller than 5</strong>.
+      </p>
+
+      <p>
+        That's hard! On average, you'd need to roll about 51 times to get a
+        number under 5 (since only 1, 2, 3, and 4 count out of 256 faces). The
+        more times you roll per second, the faster you'll find a winning roll.
+      </p>
+
+      <p>
+        Now imagine I make it harder: you need a number
+        <strong>smaller than 1</strong>. Now the only winning roll is 0 — and
+        you'll need to roll about <strong>256 times</strong> on average. Even
+        harder: what if you needed to roll a number smaller than
+        0.00000000000000000001? You'd be rolling for a very, very long time.
+      </p>
+
+      <p>
+        <strong>This is exactly what Bitcoin mining is.</strong> But instead of
+        a die, miners use a mathematical function called
+        <strong>SHA-256</strong> (applied twice). Instead of rolling, they feed
+        the block header into SHA-256 and get a 256-bit number out. If that
+        number is below the <strong>target</strong>, they win. If not, they
+        change one number in the header — the <strong>nonce</strong> — and try
+        again.
+      </p>
+    </div>
+
+    <h3>What Is SHA-256? The Fingerprint Machine</h3>
+
+    <p>
+      SHA-256 is a <strong>cryptographic hash function</strong>. Think of it as
+      a fingerprint machine:
+    </p>
+
+    <ul>
+      <li>
+        You put <em>anything</em> in — a single word, a whole book, a block
+        header. It always gives you a 256-bit fingerprint (64 hex characters).
+      </li>
+      <li>
+        Change one tiny thing in the input — even a single bit — and the
+        fingerprint changes <strong>completely and unpredictably</strong>.
+      </li>
+      <li>
+        You cannot work backwards from the fingerprint to find the input. The
+        only way to find an input that produces a specific fingerprint is to
+        <strong>guess and check</strong>.
+      </li>
+    </ul>
+
+    <div class="diagram">
+      <strong>SHA-256 in action (simplified):</strong>
+      <pre>
+SHA256("Hello")   = 185f8db3...a52f6f49  (starts with 1 — not enough zeros)
+SHA256("Hello!")  = 336a6101...2b5a67b1  (completely different!)
+SHA256("Hello!!") = 0a5f66c1...8829db4e  (still no good)
+
+Bitcoin uses DOUBLE SHA-256:
+SHA256(SHA256(block_header)) must be &lt; target
+</pre
+      >
+    </div>
+
+    <h3>The Nonce: A 4-Billion-Combination Lock</h3>
+
+    <p>
+      The <strong>nonce</strong> is a 32-bit number (0 to 4,294,967,295) in the
+      block header. The miner's ASIC tries:
+    </p>
+
+    <div class="diagram">
+      <pre>
+Try nonce = 0:      SHA256²(header with nonce=0)      → 7a3f...  Too big ✗
+Try nonce = 1:      SHA256²(header with nonce=1)      → e2c1...  Too big ✗
+Try nonce = 2:      SHA256²(header with nonce=2)      → 9d4b...  Too big ✗
+...
+Try nonce = 847,203,661: SHA256²(header with nonce=...) → 0000... Below target ✓✓✓
+                    └── BLOCK SOLVED! ──┘
+</pre
+      >
+    </div>
+
+    <p>
+      Modern ASICs try <strong>hundreds of trillions</strong> of nonces per
+      second. But 4 billion nonces isn't enough when the difficulty is high — so
+      miners also tweak the <strong>extra nonce</strong> in the coinbase
+      transaction, which changes the Merkle root, giving them a fresh 4 billion
+      nonces to try. They repeat this continuously until someone, somewhere,
+      finds a valid hash.
+    </p>
+
+    <h3>Why "Leading Zeros"?</h3>
+
+    <p>
+      You may have heard "miners look for a hash starting with many zeros." This
+      is because the target is a very small number. In hexadecimal, small
+      numbers start with zeros. The more leading zeros required, the harder the
+      problem.
+    </p>
+
+    <div class="lineup">
+      <span style="font-size: 0.8rem; align-self: center; color: var(--muted)"
+        >Easy target:</span
+      >
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char nonzero">a</span>
+      <span class="hash-char nonzero">3</span>
+      <span class="hash-char nonzero">f</span>
+      <span class="hash-char nonzero">1</span>
+      <span class="hash-char nonzero">b</span>
+      <span class="hash-char nonzero">c</span>
+      <span class="hash-char nonzero">…</span>
+      <span class="hash-char nonzero">…</span>
+    </div>
+    <div class="lineup">
+      <span style="font-size: 0.8rem; align-self: center; color: var(--muted)"
+        >Hard target:</span
+      >
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char zero">0</span>
+      <span class="hash-char nonzero">3</span>
+      <span class="hash-char nonzero">a</span>
+      <span class="hash-char nonzero">1</span>
+      <span class="hash-char nonzero">f</span>
+    </div>
+
+    <p>
+      At the current network difficulty (~112 trillion), the target is so small
+      that a valid block hash needs roughly <strong>19 leading zeros</strong> in
+      hex. The entire network — around 800 exahashes per second — takes about 10
+      minutes on average to find one.
+    </p>
+
+    <div class="kid-box">
+      <h3>Putting It All Together for a 10-Year-Old</h3>
+
+      <p>
+        Imagine every miner in the world has a magic bingo machine. Each machine
+        shakes a giant bucket of numbered balls and spills them out. If the
+        numbers that come out are <em>all very small numbers</em> (mostly
+        zeros), the miner shouts "BINGO!" and wins a prize — 3.125 brand-new
+        bitcoins plus all the transaction tips.
+      </p>
+
+      <p>
+        The machines shake <strong>incredibly fast</strong> — trillions of times
+        per second. The whole world's machines shake together, but they all have
+        slightly different buckets (because each miner's prize address is
+        different, which changes the balls inside). The first machine to get a
+        "bingo" wins, and everyone immediately resets and starts shaking for the
+        next round.
+      </p>
+
+      <p>
+        The game automatically adjusts: if bingos start coming too fast (faster
+        than every 10 minutes), the game makes the target smaller — you need
+        even smaller numbers. If bingos are too slow, it makes the target
+        bigger. This happens every 2,016 rounds (~2 weeks).
+      </p>
+
+      <p>
+        <strong>That's Bitcoin mining.</strong> Trillions of magic bingo shakes
+        per second, worldwide, with a new winner every ~10 minutes.
+      </p>
+    </div>
+
+    <div class="quiz" id="quiz2">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        Why do miners also modify the "extra nonce" in the coinbase, instead of
+        just trying all 4 billion nonce values?
+      </p>
+      <label
+        ><input type="radio" name="q2" value="a" /> Because the nonce field
+        doesn't exist</label
+      >
+      <label
+        ><input type="radio" name="q2" value="b" /> Because 4 billion nonces is
+        often not enough to find a valid hash at current difficulty — changing
+        the extra nonce gives a fresh nonce space to search</label
+      >
+      <label
+        ><input type="radio" name="q2" value="c" /> Because it's faster to
+        modify the coinbase than the nonce</label
+      >
+      <label
+        ><input type="radio" name="q2" value="d" /> Because the extra nonce is
+        required by law</label
+      >
+      <button onclick="checkQuiz('q2', 'b', 'quiz2-fb')">Submit</button>
+      <div class="feedback" id="quiz2-fb"></div>
+    </div>
+
+    <h2>Part 3: Why Miners Can't Cheat — The Security Model</h2>
+
+    <p>
+      Bitcoin's security doesn't come from trust, police, or a central
+      authority. It comes from <strong>game theory</strong> and
+      <strong>economic incentives</strong>.
+    </p>
+
+    <h3>The Core Incentive: Honest Mining Is Profitable</h3>
+
+    <p>A miner who plays by the rules earns:</p>
+
+    <div class="highlight-box">
+      <p style="text-align: center; font-size: 1.1rem">
+        <strong
+          >Revenue per block = 3.125 BTC (subsidy) + fees from all included
+          transactions</strong
+        >
+      </p>
+      <p style="text-align: center; font-size: 0.9rem; color: var(--muted)">
+        ≈ $300,000+ per block at current prices
+      </p>
+    </div>
+
+    <p>
+      Mining costs real money — electricity, hardware depreciation, cooling,
+      facility costs. A cheater who gets caught (or whose invalid block is
+      rejected by the network) earns <strong>zero</strong> for all that work.
+      The economic incentive is overwhelmingly to mine honestly.
+    </p>
+
+    <h3>What Can a Miner Actually Try to Cheat At?</h3>
+
+    <div class="comparison">
+      <div class="col">
+        <h4>✅ Things miners CAN do</h4>
+        <ul>
+          <li>Choose which transactions to include (or exclude)</li>
+          <li>Try to mine empty blocks</li>
+          <li>Attempt to reorganise the chain</li>
+          <li>Try to double-spend their own coins</li>
+        </ul>
+      </div>
+      <div class="col bad">
+        <h4>❌ Things miners CANNOT do</h4>
+        <ul>
+          <li>
+            Steal bitcoin from someone else's address (requires forging a
+            signature — mathematically impossible)
+          </li>
+          <li>
+            Create bitcoin out of thin air beyond the subsidy (nodes reject it)
+          </li>
+          <li>Change the 21 million supply cap (consensus rule)</li>
+          <li>Spend someone else's UTXOs (can't produce their signature)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>🔑 Critical distinction:</strong> A 51% attacker can
+      <em>double-spend their own coins</em> (by broadcasting one transaction,
+      mining a secret chain that spends the same coins elsewhere, then revealing
+      the longer secret chain). They <strong>cannot</strong> steal
+      <em>your</em> coins. Your private key is still your private key. The
+      attack is economically disruptive but not theft of others' funds.
+    </div>
+
+    <h3>The 51% Attack: Why It's So Hard</h3>
+
+    <p>
+      A <strong>51% attack</strong> (more accurately: a majority-hashrate
+      attack) means an attacker controls more than half of the total network
+      hashrate. With majority hashrate, they can:
+    </p>
+
+    <ol>
+      <li>
+        <strong>Double-spend:</strong> Send bitcoin to an exchange, get fiat
+        withdrawn, then mine a longer chain where that transaction never
+        happened and recover the bitcoin.
+      </li>
+      <li>
+        <strong>Censor transactions:</strong> Refuse to include certain
+        transactions in any block they mine.
+      </li>
+      <li>
+        <strong>Block other miners:</strong> Always build on their own blocks,
+        ignoring (orphaning) blocks from honest miners.
+      </li>
+    </ol>
+
+    <h3>Why No One Has Successfully Done It (Sustainably)</h3>
+
+    <div class="security-grid">
+      <div class="security-card">
+        <div class="icon">💰</div>
+        <h4>Astronomical Cost</h4>
+        <p>
+          To control 51% of the network (~400 EH/s), you'd need roughly
+          <strong>$20–40 billion</strong> in ASIC hardware, plus ongoing
+          electricity costs of ~$10–15 million <em>per day</em>. The attack
+          burns money continuously while the honest chain keeps advancing.
+        </p>
+      </div>
+      <div class="security-card">
+        <div class="icon">🏭</div>
+        <h4>Hardware Scarcity</h4>
+        <p>
+          You can't just "buy" 51% of the hashrate. ASICs are manufactured by a
+          handful of companies (mostly Bitmain and MicroBT) with finite
+          production capacity and long lead times. You'd need to outbid the
+          entire existing mining industry for years of production.
+        </p>
+      </div>
+      <div class="security-card">
+        <div class="icon">⚡</div>
+        <h4>Energy Constraints</h4>
+        <p>
+          400 EH/s consumes roughly <strong>12–15 gigawatts</strong> —
+          comparable to the entire electricity consumption of a mid-sized
+          country. Finding that much power, getting grid connections, and
+          building facilities takes years.
+        </p>
+      </div>
+      <div class="security-card">
+        <div class="icon">📉</div>
+        <h4>Self-Defeating</h4>
+        <p>
+          A successful 51% attack would destroy confidence in Bitcoin, crashing
+          the price. The attacker's hardware (purpose-built for SHA-256 mining)
+          would become near-worthless. The billions spent on the attack would
+          vaporise. You'd spend $30B to maybe steal $5B — and destroy the asset
+          in the process.
+        </p>
+      </div>
+      <div class="security-card">
+        <div class="icon">🌍</div>
+        <h4>Geographic Distribution</h4>
+        <p>
+          Mining is spread across the globe — United States, Kazakhstan, Russia,
+          Canada, and dozens of other countries. No single jurisdiction can
+          compel miners to collude. Pool operators can be pressured, but miners
+          can switch pools in minutes.
+        </p>
+      </div>
+      <div class="security-card">
+        <div class="icon">👁️</div>
+        <h4>Detectable &amp; Responsive</h4>
+        <p>
+          A 51% attack is immediately visible (large reorgs, censored
+          transactions). The community can respond: exchanges can raise
+          confirmation requirements, developers can propose checkpointing or PoW
+          changes, and honest miners have every incentive to coordinate a
+          counter-response. The attacker can't do it secretly.
+        </p>
+      </div>
+    </div>
+
+    <h3>What About Mining Pools?</h3>
+
+    <p>
+      Mining pools introduce a subtlety. A single pool controlling &gt;50% of
+      hashrate is a theoretical concern — and it has come close (GHash.io
+      briefly exceeded 50% in 2014). But pool hashrate is not the same as
+      <em>attacker</em> hashrate:
+    </p>
+
+    <ul>
+      <li>
+        <strong>Pool miners are mercenaries:</strong> If a pool operator tries
+        to attack the network, individual miners can — and will — switch to
+        another pool within minutes. The pool's hashrate evaporates.
+      </li>
+      <li>
+        <strong>Stratum V2 (in deployment):</strong> Allows individual miners to
+        construct their own block templates rather than accepting the pool's
+        template. This decentralises transaction selection even within pools.
+      </li>
+      <li>
+        <strong>Economic self-interest:</strong> Pool operators earn fees from
+        honest mining. An attack kills their business model. The most profitable
+        strategy is to mine honestly.
+      </li>
+    </ul>
+
+    <h3>Blockchain Rewrites: The Real Limits of 51%</h3>
+
+    <p>
+      Even with 51% hashrate, you cannot rewrite arbitrarily far back. The
+      further back you go, the more blocks you need to re-mine, and the honest
+      chain keeps advancing while you try to catch up. The probability of
+      catching up from <em>k</em> blocks behind decreases exponentially with
+      <em>k</em>. This is why 6 confirmations is the standard — after 6 blocks,
+      the probability of a successful reorg by an attacker with even 40% of
+      hashrate is effectively zero.
+    </p>
+
+    <div class="danger-box">
+      <h3>What 51% Does NOT Enable</h3>
+      <p>
+        A common misconception: "If someone controls 51% of mining, they can
+        steal everyone's bitcoin." <strong>This is false.</strong>
+      </p>
+      <ul>
+        <li>
+          <strong>Cannot forge signatures:</strong> Spending from an address
+          requires a valid ECDSA (or Schnorr) signature. Mining hashrate doesn't
+          break cryptography. SHA-256 hashrate has nothing to do with ECDSA key
+          security.
+        </li>
+        <li>
+          <strong>Cannot change consensus rules:</strong> Nodes independently
+          validate every block. A block that creates excess bitcoin, spends
+          non-existent UTXOs, or breaks any consensus rule is rejected by every
+          full node — regardless of how much hashrate produced it.
+        </li>
+        <li>
+          <strong>Cannot reverse ancient transactions:</strong> The attacker can
+          only reorganise the chain from the point they start their attack.
+          After sufficient confirmations, the work required exceeds any
+          practical attacker's resources.
+        </li>
+      </ul>
+    </div>
+
+    <cite
+      >Source:
+      <a href="https://bitcoin.org/bitcoin.pdf"
+        >Satoshi Nakamoto — Bitcoin Whitepaper, §11 (Calculations)</a
+      >;
+      <a href="https://developer.bitcoin.org/devguide/mining.html#solo-mining"
+        >Bitcoin Developer Guide — Mining</a
+      >;
+      <a href="https://en.bitcoin.it/wiki/Majority_attack"
+        >Bitcoin Wiki — Majority Attack</a
+      >;
+      <a href="https://en.bitcoin.it/wiki/Weaknesses"
+        >Bitcoin Wiki — Weaknesses</a
+      ></cite
+    >
+
+    <div class="quiz" id="quiz3">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        If an attacker gains 60% of the network hashrate, which of these can
+        they <strong>NOT</strong> do?
+      </p>
+      <label
+        ><input type="radio" name="q3" value="a" /> Double-spend their own
+        coins</label
+      >
+      <label
+        ><input type="radio" name="q3" value="b" /> Censor specific
+        transactions</label
+      >
+      <label
+        ><input type="radio" name="q3" value="c" /> Steal bitcoin from an
+        address they don't have the private key for</label
+      >
+      <label
+        ><input type="radio" name="q3" value="d" /> Mine empty blocks</label
+      >
+      <button onclick="checkQuiz('q3', 'c', 'quiz3-fb')">Submit</button>
+      <div class="feedback" id="quiz3-fb"></div>
+    </div>
+
+    <h2>Key Takeaways</h2>
+
+    <ol>
+      <li>
+        <strong>There is no coordinator.</strong> Every miner independently
+        builds a candidate block with their own coinbase address. The network
+        converges <em>after</em> a valid block is found — by everyone switching
+        to build on the winning tip.
+      </li>
+      <li>
+        <strong>Mining = guessing.</strong> SHA-256 is a one-way fingerprint
+        machine. The only way to find a hash below the target is to try nonces
+        trillions of times per second until you get lucky. The "nonce" is just a
+        counter you keep incrementing.
+      </li>
+      <li>
+        <strong>The coinbase makes every miner's puzzle different.</strong>
+        Because each miner pays themselves at a different address, their Merkle
+        roots differ, and they hash different headers. This is what prevents
+        miners from competing on identical work.
+      </li>
+      <li>
+        <strong>Honest mining is the most profitable strategy.</strong> Block
+        rewards are worth hundreds of thousands of dollars. Cheating risks
+        earning nothing for enormous electricity expenditure.
+      </li>
+      <li>
+        <strong
+          >A 51% attack is devastatingly expensive and limited in scope.</strong
+        >
+        It would cost billions in hardware and millions per day in electricity —
+        and it cannot steal coins, forge signatures, or break consensus rules.
+        It's economically irrational.
+      </li>
+      <li>
+        <strong>The network's distribution is its defence.</strong> Thousands of
+        independent miners across dozens of countries, pool-switching
+        flexibility, hardware scarcity, and energy constraints make collusion
+        practically infeasible.
+      </li>
+    </ol>
+
+    <div class="callout">
+      <strong>🔗 Primary source for deeper reading:</strong>
+      <a href="https://bitcoin.org/bitcoin.pdf"
+        >Satoshi Nakamoto — Bitcoin Whitepaper</a
+      >
+      — read §3 (Timestamp Server), §4 (Proof-of-Work), §5 (Network), and §11
+      (Calculations) for the original articulation of mining, consensus, and the
+      security model. Also:
+      <a href="https://developer.bitcoin.org/devguide/mining.html"
+        >Bitcoin Developer Guide — Mining</a
+      >
+      for the technical walkthrough;
+      <a href="https://en.bitcoin.it/wiki/Difficulty"
+        >Bitcoin Wiki — Difficulty</a
+      >
+      for the difficulty adjustment algorithm.
+    </div>
+
+    <div class="callout">
+      <strong>💬 Questions?</strong> Ask your agent-teacher: "walk me through a
+      specific block's nonce find," "explain the difficulty adjustment in
+      detail," "what's the difference between a soft fork and a hard fork," or
+      "how does Stratum V2 change pool mining?" Every question deepens the
+      model.
+    </div>
+
+    <h2>Navigate</h2>
+    <div class="nav">
+      <a href="0002-transaction-structure-utxo.html"
+        >← Lesson 0002: Transaction Structure &amp; UTXO Model</a
+      >
+      <a href="0004-miners-and-nodes.html"
+        >Lesson 0004: Miners, Nodes &amp; the Block Race →</a
+    </div>
+
+    <script>
+      function checkQuiz(qName, correctValue, fbId) {
+        const selected = document.querySelector(
+          `input[name="${qName}"]:checked`,
+        );
+        const fb = document.getElementById(fbId);
+        if (!selected) {
+          fb.textContent = "Please select an answer first.";
+          fb.className = "feedback show incorrect";
+          return;
+        }
+        if (selected.value === correctValue) {
+          fb.textContent = "✅ Correct!";
+          fb.className = "feedback show correct";
+        } else {
+          fb.textContent =
+            "❌ Not quite. Review the section above and try again.";
+          fb.className = "feedback show incorrect";
+        }
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0002-transaction-structure-utxo.html" style="color:#f7931a;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0004-miners-and-nodes.html" style="color:#f7931a;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0005: Projections, Orthogonality & Residuals</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: #2563eb;
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--accent-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.2rem 0;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0005 — Projections, Orthogonality & Residuals</h1>
+    <p class="meta">Linear Algebra Pillar · ~25 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> Every transformer block contains
+      <strong>residual connections</strong> — the "Add" in "Add & Norm." Instead
+      of replacing the input, the block computes a
+      <strong>correction</strong> and adds it: output = input + block(input).
+      This lesson teaches the linear algebra behind why this works: projections,
+      orthogonal decomposition, and why preserving the original signal while
+      adding a learned correction prevents deep networks from collapsing.
+    </div>
+
+    <div class="hook">
+      A vector can be split into two parts: the part that lies along another
+      vector (its projection), and the part that's perpendicular (the residual).
+      This decomposition — splitting "what aligns" from "what's left over" — is
+      the mathematical idea behind one of the most important architectural
+      tricks in deep learning.
+    </div>
+
+    <h2>Projection: The Shadow of One Vector on Another</h2>
+
+    <p>
+      The <strong>projection</strong> of vector <strong>v</strong> onto vector
+      <strong>u</strong> is the component of v that points in the direction of
+      u:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      proj<sub>u</sub>(v) = (v·u / u·u) · u
+    </p>
+
+    <p>
+      Geometrically: drop a perpendicular from the tip of v to the line through
+      u. The projection is the vector from the origin to that foot. It's the
+      <strong>closest approximation</strong> of v that lies entirely along u.
+    </p>
+
+    <h2>Orthogonal Decomposition</h2>
+
+    <p>Any vector v can be split into two perpendicular (orthogonal) pieces:</p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      v = proj<sub>u</sub>(v) + (v − proj<sub>u</sub>(v))
+    </p>
+
+    <p>
+      The first term is <strong>along u</strong> (the projection). The second
+      term is <strong>perpendicular to u</strong> (the residual). These two
+      components are orthogonal — their dot product is zero — meaning they carry
+      completely independent information.
+    </p>
+
+    <div class="insight">
+      <strong
+        >Two vectors are orthogonal when their dot product is zero.</strong
+      >
+      Orthogonal vectors have no overlap, no redundancy. An orthogonal basis —
+      where every basis vector is perpendicular to every other — is the most
+      efficient coordinate system possible because each dimension captures
+      completely independent information.
+    </div>
+
+    <h2>Residual Connections: The "Add" in "Add & Norm"</h2>
+
+    <p>In a transformer block, the output is:</p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      output = LayerNorm(x + Sublayer(x))
+    </p>
+
+    <p>
+      where Sublayer is either attention or the feed-forward network. Instead of
+      <code>output = Sublayer(x)</code> (replacing x entirely), the block
+      computes <code>x + Sublayer(x)</code> — it adds a
+      <strong>correction</strong> to the original.
+    </p>
+
+    <p>Why does this matter?</p>
+
+    <ol>
+      <li>
+        <strong>Gradient flow:</strong> During training, the gradient can flow
+        directly through the "+" path, bypassing the sublayer. This prevents the
+        "vanishing gradient" problem in deep networks.
+      </li>
+      <li>
+        <strong>Learning residuals:</strong> The sublayer only needs to learn
+        the <em>difference</em> between what the input already encodes and what
+        it should encode. If the identity is already good, the sublayer can
+        output near-zero.
+      </li>
+      <li>
+        <strong>Information preservation:</strong> The original signal x is
+        never lost — it's always there, with the sublayer's output added as a
+        refinement.
+      </li>
+    </ol>
+
+    <div class="insight">
+      <strong
+        >Residual connections decompose learning into "keep what works, fix what
+        doesn't."</strong
+      >
+      Each layer doesn't need to rediscover everything from scratch. It only
+      needs to compute the correction — the residual — and add it. This is why
+      transformers can be stacked 96+ layers deep without the earlier layers'
+      information being washed away.
+    </div>
+
+    <h2>Layer Normalization</h2>
+
+    <p>
+      The "Norm" in "Add & Norm" standardizes each vector to have mean 0 and
+      variance 1 (with learned scale and shift parameters). This keeps vector
+      magnitudes from exploding or vanishing as they pass through many layers —
+      a practical necessity when composing dozens of transformations.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: In a residual connection output = x + f(x), what happens if the
+          sublayer f(x) learns to output near-zero?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. The block fails — zero output means no learning happened</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. The block passes x through unchanged — which is a perfectly valid
+          thing to do</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. The model crashes because division by zero occurs in layer
+          norm</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. x is multiplied by a learned scalar instead of being added</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: Two vectors are orthogonal. What does this guarantee about their
+          dot product?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)">A. It equals 1</span>
+        <span class="quiz-option" onclick="check('q2', 2)">B. It equals 0</span>
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. It's positive but less than 1</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. It's undefined</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: Why can transformers be stacked to 96+ layers without losing
+          early-layer information?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. Each layer stores a copy of all previous layers' outputs</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. Residual connections provide a direct path for information and
+          gradients to flow through the network</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. Attention mechanisms have infinite memory</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. Layer normalization compresses the network into fewer effective
+          layers</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a
+        href="https://www.youtube.com/watch?v=LyGKycYT2v0&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"
+        >Dot products and duality — 3Blue1Brown (Essence of Linear Algebra, Ch.
+        9)</a
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📄 Key Paper</strong>
+      He et al., <em>"Deep Residual Learning for Image Recognition"</em> (2015)
+      — the paper that introduced residual connections to deep learning. The
+      transformer inherited this idea directly.
+    </div>
+
+    <div class="teacher-note">
+      Residual connections feel like a small implementation trick, but they're
+      mathematically profound. If you want to understand why deep networks
+      without residuals fail, or why the "+" sign is doing more work than it
+      looks like, ask me.
+    </div>
+
+    <div class="prev-next">
+      <a href="0004-vector-spaces-embeddings.html"
+        >← 0004: Vector Spaces & Embeddings</a
+      >
+      <a href="0006-eigenvalues-svd.html">Next: 0006 — Eigenvalues & SVD →</a>
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! If f(x) ≈ 0, then output ≈ x — the identity mapping. This is actually desirable: it means the layer can 'opt out' when no correction is needed. The residual formulation makes the identity easy to learn (just output zeros), whereas a direct mapping f(x) would need to learn the identity matrix — which is much harder.",
+              1: "Near-zero output from f(x) is fine — the identity path through '+' preserves the signal.",
+              3: "Layer norm handles near-zero f(x) gracefully.",
+              4: "The '+' is literal addition, not a learned operation.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Orthogonal vectors have a dot product of exactly zero. This means they share no directional alignment — each carries information completely independent of the other.",
+              1: "A dot product of 1 occurs when both vectors are unit vectors pointing in the same direction.",
+              3: "A positive dot product means the vectors point in similar directions — they're not orthogonal.",
+              4: "The dot product of orthogonal vectors is well-defined: it's zero.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The residual path (the '+' before each sublayer) creates a 'gradient highway' through the network. During backpropagation, gradients can flow directly through these additive paths without being multiplied by weight matrices at every layer. This prevents the exponential decay (vanishing gradient) that would otherwise kill learning in deep networks.",
+              1: "Layers don't store copies — the residual path preserves the signal without storage.",
+              3: "Attention has finite context, not infinite memory.",
+              4: "Layer norm helps with stability but doesn't reduce effective depth.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0004-vector-spaces-embeddings.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0006-eigenvalues-svd.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

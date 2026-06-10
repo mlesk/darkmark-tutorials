@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0009: Random Variables & Distributions</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --prob: #7c3aed;
+        --prob-light: #ede9fe;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--prob-light);
+        border-left: 3px solid var(--prob);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--prob);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--prob-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1.2rem 0;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        text-align: left;
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0009 — Random Variables, Expectation & Distributions</h1>
+    <p class="meta">Probability Pillar · ~25 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> The output of a transformer is a
+      <strong>categorical random variable</strong> — it takes one of ~50,000
+      values (tokens), each with a specific probability. The model doesn't just
+      say "the next word is X." It says "the next word is a random draw from
+      this distribution." Understanding random variables and distributions is
+      understanding <em>what a transformer actually outputs</em>.
+    </div>
+
+    <div class="hook">
+      "The next token" is not a fixed thing — it's uncertain. A
+      <strong>random variable</strong> is the mathematical object that captures
+      this uncertainty: a variable whose value is determined by chance, governed
+      by a probability distribution. Every AI output is a random variable.
+    </div>
+
+    <h2>Random Variables</h2>
+
+    <p>
+      A <strong>random variable</strong> X is a function from the sample space Ω
+      to real numbers. For language models, X maps each possible next token
+      to... well, the token itself (or its ID). The key idea: X has a
+      <strong>distribution</strong> — a description of how probable each
+      possible value is.
+    </p>
+
+    <h2>Expectation: The Weighted Average</h2>
+
+    <p>
+      The <strong>expected value</strong> E[X] is the probability-weighted
+      average of all possible values:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      E[X] = Σ x · P(X = x)&nbsp;&nbsp;(discrete)&nbsp;&nbsp;&nbsp;E[X] = ∫ x ·
+      f(x) dx&nbsp;&nbsp;(continuous)
+    </p>
+
+    <p>
+      Think of expectation as the <strong>center of mass</strong> of the
+      probability distribution. If you placed weights equal to probabilities at
+      each possible value, the expectation is where the distribution would
+      balance.
+    </p>
+
+    <div class="insight">
+      <strong>Loss functions are expectations.</strong> When training a model,
+      the loss is E[−log P(correct_token | context)] — the expected negative log
+      probability of the correct answer, averaged over the training data.
+      Minimizing the loss means maximizing the expected log probability the
+      model assigns to correct answers.
+    </div>
+
+    <h2>Key Distributions for AI</h2>
+
+    <table>
+      <tr>
+        <th>Distribution</th>
+        <th>What It Models</th>
+        <th>Where in AI</th>
+      </tr>
+      <tr>
+        <td><strong>Categorical</strong></td>
+        <td>One of K categories</td>
+        <td>Next-token prediction (K = vocab size)</td>
+      </tr>
+      <tr>
+        <td><strong>Bernoulli</strong></td>
+        <td>Yes/no (success/failure)</td>
+        <td>Binary classification, dropout masks</td>
+      </tr>
+      <tr>
+        <td><strong>Gaussian (Normal)</strong></td>
+        <td>Continuous values around a mean</td>
+        <td>Weight initialization, noise, latent spaces (VAEs, diffusion)</td>
+      </tr>
+      <tr>
+        <td><strong>Multinomial</strong></td>
+        <td>Counts across K categories</td>
+        <td>Bag-of-words, topic models</td>
+      </tr>
+    </table>
+
+    <p>
+      The categorical distribution is the most important for transformers: it's
+      a probability vector of length K (the vocabulary size), where each entry
+      p<sub>i</sub> ≥ 0 and Σp<sub>i</sub> = 1. This is exactly what softmax
+      produces.
+    </p>
+
+    <h2>Continuous Distributions</h2>
+
+    <p>
+      For continuous random variables, probability is described by a
+      <strong>probability density function (PDF)</strong> f(x). The probability
+      of falling in an interval [a,b] is ∫ₐᵇ f(x) dx. This uses your calculus
+      background — integration as "area under the curve."
+    </p>
+
+    <p>
+      The <strong>Gaussian (normal) distribution</strong> N(μ, σ²) is the most
+      important continuous distribution in AI:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+      "
+    >
+      f(x) = (1/√(2πσ²)) · exp(−(x−μ)²/(2σ²))
+    </p>
+
+    <p>
+      It appears in weight initialization (Kaiming/Xavier), variational
+      autoencoders, diffusion models, and as the limiting distribution of sums
+      (Central Limit Theorem). The bell curve is everywhere.
+    </p>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: A fair die has E[roll] = 3.5. What does 3.5 represent, given that
+          you can never actually roll a 3.5?
+        </p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. The most likely outcome</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. The long-run average if you rolled infinitely many times</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. The median outcome</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. An error in the calculation</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: A transformer's output for the next token is best described as
+          what?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. A single token ID</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. A categorical random variable — a distribution over the
+          vocabulary</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. A Gaussian random variable</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. A deterministic function of the input</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: When people say "the model was trained to minimize the loss," what
+          mathematical object is the loss?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. The variance of the model's outputs</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. The expected negative log probability of the correct answers — an
+          expectation over the training data</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. The number of incorrect predictions</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. The determinant of the weight matrix</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch: Blitzstein, Statistics 110 —
+      <a
+        href="https://www.youtube.com/watch?v=k2BB0p8byGA&list=PL2SOU6wwxB0uwwH80KTQ6ht66KWxbzTIo"
+        >Lecture 5: Discrete Random Variables</a
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Blitzstein & Hwang, <em>Introduction to Probability</em> — Chapters 3–5
+      (Random Variables and Distributions)
+    </div>
+
+    <div class="teacher-note">
+      The categorical distribution is the native output format of every language
+      model. When you look at token probabilities in a chat interface, you're
+      looking at a categorical distribution with ~50,000 categories. Every entry
+      is a probability, and they sum to 1. That's not an implementation detail —
+      that's what the model IS.
+    </div>
+
+    <div class="prev-next">
+      <a href="0008-conditional-probability-bayes.html"
+        >← 0008: Conditional Probability & Bayes</a
+      >
+      <a href="0010-entropy-cross-entropy.html"
+        >Next: 0010 — Entropy & Cross-Entropy →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Expectation is a theoretical average, not necessarily a possible outcome. E[die] = 3.5 means 'if you roll forever, the average converges to 3.5.' In AI, expected loss is the average loss over the entire training distribution — not the loss on any single example.",
+              1: "Each face (1-6) is equally likely — there is no single most likely outcome.",
+              3: "The median of a fair die is 3 or 4 (any value that splits the distribution).",
+              4: "3.5 is correct: (1+2+3+4+5+6)/6 = 21/6 = 3.5.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The transformer outputs logits, which softmax converts to a categorical distribution over the vocabulary. Each token gets a probability. The actual next token is sampled from this distribution (or the argmax is taken for greedy decoding).",
+              1: "A single token ID is what you get after sampling/argmax — but the model's raw output is a distribution.",
+              3: "Gaussians are continuous; token predictions are discrete categories.",
+              4: "The output is probabilistic by design — the same input can produce different outputs (temperature sampling).",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The loss = −(1/N) Σᵢ log P(correct_tokenᵢ | contextᵢ) — the average negative log probability, which is the empirical expectation. Minimizing this maximizes the probability the model assigns to real data. This is the core of maximum likelihood estimation.",
+              1: "Variance measures spread, not correctness.",
+              3: "Count of errors is accuracy, not loss — and it's non-differentiable, so it can't be used for gradient-based training.",
+              4: "The determinant of a weight matrix is unrelated to the training loss.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0008-conditional-probability-bayes.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0010-entropy-cross-entropy.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

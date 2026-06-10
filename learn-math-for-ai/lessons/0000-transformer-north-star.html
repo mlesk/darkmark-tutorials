@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0000: The Transformer — Your North Star</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+        --la: #2563eb;
+        --prob: #7c3aed;
+        --bridge: #059669;
+        --la-light: #dbeafe;
+        --prob-light: #ede9fe;
+        --bridge-light: #d1fae5;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .hook {
+        background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+        border-left: 4px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .puzzle {
+        background: var(--la-light);
+        border-left: 3px solid var(--la);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle.prob {
+        background: var(--prob-light);
+        border-left-color: var(--prob);
+      }
+      .puzzle.bridge {
+        background: var(--bridge-light);
+        border-left-color: var(--bridge);
+      }
+      .puzzle strong {
+        color: var(--la);
+      }
+      .puzzle.prob strong {
+        color: var(--prob);
+      }
+      .puzzle.bridge strong {
+        color: var(--bridge);
+      }
+      .pipeline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 1.5rem 0;
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 0.82rem;
+        justify-content: center;
+      }
+      .pipe-step {
+        background: white;
+        border: 1.5px solid var(--border);
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        text-align: center;
+      }
+      .pipe-arrow {
+        color: var(--muted);
+        font-size: 1.2rem;
+      }
+      .pillar-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1.5rem 0;
+      }
+      @media (max-width: 600px) {
+        .pillar-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .pillar-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.2rem 1.3rem;
+      }
+      .pillar-card.la {
+        border-top: 3px solid var(--la);
+      }
+      .pillar-card.prob {
+        border-top: 3px solid var(--prob);
+      }
+      .pillar-card h3 {
+        margin: 0 0 0.5rem;
+      }
+      .pillar-card ul {
+        margin: 0.4rem 0 0 1.2rem;
+        font-size: 0.9rem;
+      }
+      .pillar-card li {
+        margin: 0.25rem 0;
+      }
+      .map-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.88rem;
+      }
+      .map-table th,
+      .map-table td {
+        border: 1px solid var(--border);
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+      }
+      .map-table th {
+        background: #f9fafb;
+        font-weight: 600;
+      }
+      .map-table .la-tag {
+        color: var(--la);
+        font-weight: 600;
+      }
+      .map-table .prob-tag {
+        color: var(--prob);
+        font-weight: 600;
+      }
+      .map-table .bridge-tag {
+        color: var(--bridge);
+        font-weight: 600;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--accent-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0000 — The Transformer: Your North Star</h1>
+    <p class="meta">
+      Precursor · The destination before the journey · ~25 minutes
+    </p>
+
+    <div class="hook">
+      <strong>You already use transformers every day.</strong> ChatGPT, Claude,
+      Gemini — all transformer-based. DALL·E, Midjourney, Sora — built on
+      transformer variants. GitHub Copilot, the assistant writing code with you
+      right now — a transformer. This lesson shows you what's inside the black
+      box. Not the code, not the engineering — the
+      <em>mathematical ideas</em> that make it work. Everything you learn in the
+      next 14 lessons builds toward understanding this architecture from the
+      ground up.
+    </div>
+
+    <h2>What Does a Transformer Do?</h2>
+
+    <p>
+      At its core, a transformer takes a sequence of tokens and predicts what
+      comes next.
+    </p>
+
+    <div class="pipeline">
+      <div class="pipe-step">"The cat sat"</div>
+      <span class="pipe-arrow">→</span>
+      <div
+        class="pipe-step"
+        style="background: var(--accent-light); border-color: var(--accent)"
+      >
+        Transformer
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step">
+        "on" (73%)<br />"under" (11%)<br />"." (3%)<br />…
+      </div>
+    </div>
+
+    <p>
+      That's it. Input tokens in, probability distribution over next tokens out.
+      Repeat to generate text: take the predicted token, append it to the input,
+      run the transformer again.
+    </p>
+
+    <div class="insight">
+      <strong
+        >This is the fundamental operation of every large language
+        model.</strong
+      >
+      GPT-4, Claude 4, Gemini 2.5 — all of them, at their mathematical core, do
+      exactly this: take a sequence of tokens, output a probability distribution
+      over the next token. The difference between them is scale (billions vs.
+      trillions of parameters), training data, and engineering — not the
+      underlying math.
+    </div>
+
+    <h2>The Four Mathematical Pillars</h2>
+
+    <p>
+      The transformer rests on four mathematical ideas. You'll master the first
+      two in depth, and we'll touch the third and fourth as needed:
+    </p>
+
+    <div class="pillar-grid">
+      <div class="pillar-card la">
+        <h3>🧮 Linear Algebra</h3>
+        <p style="font-size: 0.9rem; color: var(--muted)">
+          The language of data representation and transformation
+        </p>
+        <ul>
+          <li>
+            <strong>Vectors</strong> — words, images, users become lists of
+            numbers
+          </li>
+          <li>
+            <strong>Matrices</strong> — transformations that move vectors
+            between spaces
+          </li>
+          <li>
+            <strong>Matrix multiplication</strong> — the computational engine of
+            attention
+          </li>
+          <li>
+            <strong>Embeddings</strong> — learned vector representations that
+            capture meaning
+          </li>
+          <li>
+            <strong>SVD / low-rank</strong> — how we compress and understand
+            models
+          </li>
+        </ul>
+        <p style="font-size: 0.85rem; margin-top: 0.6rem">Lessons 0001–0006</p>
+      </div>
+      <div class="pillar-card prob">
+        <h3>🎲 Probability & Information Theory</h3>
+        <p style="font-size: 0.9rem; color: var(--muted)">
+          The language of uncertainty, learning, and measurement
+        </p>
+        <ul>
+          <li>
+            <strong>Probability distributions</strong> — the model's output
+            format
+          </li>
+          <li>
+            <strong>Conditional probability & Bayes</strong> — learning from
+            evidence
+          </li>
+          <li>
+            <strong>Entropy & cross-entropy</strong> — how we measure
+            "wrongness"
+          </li>
+          <li><strong>KL divergence</strong> — comparing distributions</li>
+          <li>
+            <strong>Softmax</strong> — the bridge between vector math and
+            probability
+          </li>
+        </ul>
+        <p style="font-size: 0.85rem; margin-top: 0.6rem">Lessons 0007–0012</p>
+      </div>
+    </div>
+
+    <p style="text-align: center; color: var(--muted); margin: 0.6rem 0">↓</p>
+    <div style="text-align: center; margin: 0.5rem 0 1.5rem">
+      <span
+        style="
+          background: var(--bridge-light);
+          border: 1px solid var(--bridge);
+          padding: 0.6rem 1.5rem;
+          border-radius: var(--radius);
+          font-weight: 700;
+          color: var(--bridge);
+        "
+        >Attention Mechanism<br /><span
+          style="font-weight: 400; font-size: 0.85rem"
+          >Where linear algebra meets probability</span
+        ></span
+      >
+    </div>
+    <p style="text-align: center; color: var(--muted)">Lessons 0013–0014</p>
+
+    <h2>The Transformer Pipeline — A Preview</h2>
+
+    <p>
+      Here is the full mathematical pipeline.
+      <strong>Don't worry about understanding it yet.</strong> Read it once to
+      see the shape. Return to this section after every few lessons — each time,
+      more of it will make sense.
+    </p>
+
+    <div
+      class="pipeline"
+      style="flex-direction: column; gap: 1rem; align-items: stretch"
+    >
+      <div
+        style="
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <div class="pipe-step">Tokens<br /><small>"The cat sat"</small></div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step" style="border-color: var(--la)">
+          Embedding<br /><small>Tokens → Vectors</small>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step" style="border-color: var(--la)">
+          + Position<br /><small>encoding</small>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div
+          class="pipe-step"
+          style="
+            border: 2px solid var(--bridge);
+            background: var(--bridge-light);
+          "
+        >
+          Attention<br />Block<br /><small>× N layers</small>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step" style="border-color: var(--la)">
+          Output<br />Projection
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step" style="border-color: var(--prob)">
+          Softmax<br /><small>→ Probabilities</small>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">"on" (73%)</div>
+      </div>
+    </div>
+
+    <p>
+      Zooming into one <strong>Attention Block</strong> (the heart of the
+      transformer):
+    </p>
+
+    <div
+      class="pipeline"
+      style="
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: stretch;
+        font-size: 0.82rem;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.4rem;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <div class="pipe-step">Input<br />vectors</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step" style="border-color: var(--la)">
+          Multi-Head<br />Attention
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">Add &amp;<br />Norm</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">Feed-Forward<br />Network</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">Add &amp;<br />Norm</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-step">Output<br />vectors</div>
+      </div>
+    </div>
+
+    <p>
+      And zooming into <strong>Multi-Head Attention</strong> (the core
+      innovation of the 2017 paper):
+    </p>
+
+    <div class="pipeline">
+      <span
+        style="
+          font-family: Charter, Georgia, serif;
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: var(--la);
+        "
+        >Attention(Q, K, V) = softmax</span
+      >
+      <span style="font-size: 1.3rem">(</span>
+      <div class="pipe-step" style="border-color: var(--la)">Q·Kᵀ</div>
+      <span style="font-family: Charter, Georgia, serif">/ √dₖ</span>
+      <span style="font-size: 1.3rem">)</span>
+      <span style="font-family: Charter, Georgia, serif; font-size: 1rem"
+        >·</span
+      >
+      <div class="pipe-step" style="border-color: var(--la)">V</div>
+    </div>
+
+    <p
+      style="
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+      "
+    >
+      Q·Kᵀ = matrix multiplication (Lesson 0003) &nbsp;|&nbsp; softmax =
+      probability bridge (Lesson 0012) &nbsp;|&nbsp; √dₖ = scaling factor
+      (Lesson 0013)
+    </p>
+
+    <div class="insight">
+      <strong>That formula is the destination.</strong> After 12 lessons, you'll
+      be able to read <code>Attention(Q,K,V) = softmax(QKᵀ/√dₖ)V</code> and know
+      exactly what each symbol means, why it's there, and what would break if
+      you changed it. That's genuine mathematical competence — the ability to
+      reason about the formula, not just recognize it.
+    </div>
+
+    <h2>Your Journey: The Lesson Map</h2>
+
+    <table class="map-table">
+      <tr>
+        <th>#</th>
+        <th>Lesson</th>
+        <th>Key Question Answered</th>
+      </tr>
+      <tr>
+        <td class="la-tag">0001</td>
+        <td>Vectors — The Atom of AI Data</td>
+        <td>What is a vector, and why is everything in AI a vector?</td>
+      </tr>
+      <tr>
+        <td class="la-tag">0002</td>
+        <td>Matrices as Transformations</td>
+        <td>How do we move vectors between spaces?</td>
+      </tr>
+      <tr>
+        <td class="la-tag">0003</td>
+        <td>Matrix Multiplication — The Engine</td>
+        <td>How does Q·Kᵀ compute all pairwise similarities at once?</td>
+      </tr>
+      <tr>
+        <td class="la-tag">0004</td>
+        <td>Vector Spaces, Bases & Embeddings</td>
+        <td>What does it mean to "represent" a word as a vector?</td>
+      </tr>
+      <tr>
+        <td class="la-tag">0005</td>
+        <td>Projections, Orthogonality & Residuals</td>
+        <td>Why do residual connections help deep networks?</td>
+      </tr>
+      <tr>
+        <td class="la-tag">0006</td>
+        <td>Eigenvalues, SVD & Matrix Secrets</td>
+        <td>How do we compress models and understand what matrices "do"?</td>
+      </tr>
+      <tr>
+        <td class="prob-tag">0007</td>
+        <td>Probability Fundamentals</td>
+        <td>Why is probability the right language for learning from data?</td>
+      </tr>
+      <tr>
+        <td class="prob-tag">0008</td>
+        <td>Conditional Probability & Bayes</td>
+        <td>How does a model update its beliefs with new evidence?</td>
+      </tr>
+      <tr>
+        <td class="prob-tag">0009</td>
+        <td>Random Variables & Distributions</td>
+        <td>What exactly is the model's "output"?</td>
+      </tr>
+      <tr>
+        <td class="prob-tag">0010</td>
+        <td>Entropy & Cross-Entropy</td>
+        <td>How do we measure whether a model is "wrong"?</td>
+      </tr>
+      <tr>
+        <td class="prob-tag">0011</td>
+        <td>KL Divergence</td>
+        <td>How different are two probability distributions?</td>
+      </tr>
+      <tr>
+        <td class="bridge-tag">0012</td>
+        <td>Softmax — The Bridge</td>
+        <td>How do we turn vector math into probabilities?</td>
+      </tr>
+      <tr>
+        <td class="bridge-tag">0013</td>
+        <td>Attention — The Core Innovation</td>
+        <td>How does attention actually work, step by step?</td>
+      </tr>
+      <tr>
+        <td class="bridge-tag">0014</td>
+        <td>Complete Transformer + Paper</td>
+        <td>How do all the pieces fit together into a working system?</td>
+      </tr>
+    </table>
+
+    <h2>What You'll Be Able to Do</h2>
+
+    <p>After completing this sequence, you will be able to:</p>
+
+    <ul>
+      <li>
+        <strong>Read</strong> the "Attention Is All You Need" paper with genuine
+        comprehension — every equation, every diagram
+      </li>
+      <li>
+        <strong>Evaluate</strong> AI claims critically: when someone says "our
+        model uses a novel attention mechanism," you'll know what questions to
+        ask
+      </li>
+      <li>
+        <strong>Reason</strong> about where transformers will fail: token
+        limits, attention bottlenecks, distribution mismatches
+      </li>
+      <li>
+        <strong>Communicate</strong> precisely about AI capabilities: "the model
+        outputs a categorical distribution over 50,257 tokens" instead of "it
+        guesses the next word"
+      </li>
+      <li>
+        <strong>Bridge</strong> between technical teams and decision-makers,
+        with the math to back up every statement
+      </li>
+    </ul>
+
+    <div class="insight">
+      <strong>You will not be able to build a transformer.</strong> That's not
+      the goal. You'll be able to do something rarer and arguably more valuable:
+      <em
+        >think clearly about what transformers can and cannot do, and explain
+        why, in mathematical terms that are actually correct.</em
+      >
+      In an AI-driven economy, that skill — genuine mathematical literacy
+      without the implementation — is the gap this course fills.
+    </div>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>
+          Q1: At its mathematical core, what does a transformer (like GPT-4)
+          output?
+        </p>
+        <span class="quiz-option" onclick="checkAnswer('q1', 1)"
+          >A. A single best-guess word</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q1', 2)"
+          >B. A probability distribution over possible next tokens</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q1', 3)"
+          >C. A fixed-length vector representing the entire input</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q1', 4)"
+          >D. A confidence score between 0 and 1</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: The attention formula includes Q·Kᵀ (matrix multiplication), a
+          softmax, and multiplication by V. Which two mathematical pillars
+          converge in this formula?
+        </p>
+        <span class="quiz-option" onclick="checkAnswer('q2', 1)"
+          >A. Calculus and statistics</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q2', 2)"
+          >B. Linear algebra and probability</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q2', 3)"
+          >C. Graph theory and optimization</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q2', 4)"
+          >D. Number theory and information theory</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: A company claims their new AI model "doesn't use transformers."
+          Based on what you now know, what would be the most productive question
+          to ask?
+        </p>
+        <span class="quiz-option" onclick="checkAnswer('q3', 1)"
+          >A. "What programming language is it written in?"</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q3', 2)"
+          >B. "What mathematical operations does it use to relate different
+          parts of the input to each other?"</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q3', 3)"
+          >C. "How many GPUs did you train it on?"</span
+        >
+        <span class="quiz-option" onclick="checkAnswer('q3', 4)"
+          >D. "Is it better than GPT-4?"</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Primary Source for the Full Journey</strong>
+      Vaswani et al., <em>"Attention Is All You Need"</em> (2017) —
+      <a href="https://arxiv.org/abs/1706.03762">arxiv.org/abs/1706.03762</a>
+      <span style="display: block; margin-top: 0.4rem; color: var(--muted)"
+        >The 9-page paper that started the transformer revolution. Bookmark it.
+        In Lesson 0014, you'll read every section with full mathematical
+        comprehension. For now, just know it exists — it's your
+        destination.</span
+      >
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Recommended First Watch</strong>
+      3Blue1Brown, <em>"But what is a GPT? Visual intro to transformers"</em> —
+      <a href="https://www.youtube.com/watch?v=wjZofJX0v4M">YouTube</a>
+      <span style="display: block; margin-top: 0.4rem; color: var(--muted)"
+        >An outstanding visual walkthrough of the transformer architecture.
+        Watch it now for motivation — then watch it again after Lesson 0014 to
+        see how much you've learned.</span
+      >
+    </div>
+
+    <div class="teacher-note">
+      This precursor is your map. Return to it whenever you feel lost in the
+      details of a specific lesson. The question is always: "How does this piece
+      fit into the transformer?" If you can't see the connection, ask me — I'll
+      trace the thread for you.
+    </div>
+
+    <div class="prev-next">
+      <span></span>
+      <a href="0001-vectors-as-ai-atoms.html"
+        >Next: 0001 — Vectors: The Atom of AI Data →</a
+      >
+    </div>
+
+    <script>
+      function checkAnswer(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The transformer outputs a full probability distribution — a number for every possible token in the vocabulary. It doesn't pick one; it assigns confidence to all of them. The 'answer' you see is sampled from this distribution.",
+              1: "Not quite. The model outputs a full distribution, not a single guess. The text you see is sampled from that distribution — which is why the same prompt can produce different responses.",
+              3: "The model outputs one vector per input position, not one vector for the entire input. Each position gets a probability distribution over the next token.",
+              4: "It's more than a single score — it's a complete distribution over the entire vocabulary (typically 50,000+ tokens).",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Q·Kᵀ and V are linear algebra (matrix multiplication). Softmax converts the result into a probability distribution. This single formula is where the two pillars of this course converge.",
+              1: "Calculus appears in training (gradient descent) but isn't in the attention formula itself.",
+              3: "Graph theory and optimization are relevant to some ML approaches but aren't what the attention formula is built on.",
+              4: "Information theory (entropy) is related to probability, but number theory isn't involved here.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! 'Transformer' is just a name for a specific attention-based architecture. What matters is the underlying math. A good alternative might use state-space models, recursive architectures, or other mathematical mechanisms for relating tokens. The right question is about the <em>operations</em>, not the label.",
+              1: "Implementation language tells you nothing about the mathematical approach.",
+              3: "Training compute is an engineering detail, not a mathematical one.",
+              4: "'Better' is vague and benchmark-dependent. The interesting question is about the approach.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb");
+        const opts = document.querySelectorAll("#" + qId + " .quiz-option");
+        const ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.textContent = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <span style="color:#ccc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</span>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0001-vectors-as-ai-atoms.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

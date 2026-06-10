@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0004: Advanced Worktree Patterns</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #059669;
+        --accent-light: #d1fae5;
+        --border: #e5e0d8;
+        --warn: #d97706;
+        --warn-light: #fef3c7;
+        --code-bg: #f3f2ef;
+        --radius: 6px;
+        --font-mono: "SF Mono", "Fira Code", "Menlo", "Consolas", monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 { font-size: 2.2rem; margin-bottom: 0.3rem; font-weight: 700; letter-spacing: -0.02em; }
+      h2 { font-size: 1.5rem; margin: 2.5rem 0 0.8rem; font-weight: 700; letter-spacing: -0.01em; }
+      h3 { font-size: 1.15rem; margin: 1.8rem 0 0.5rem; font-weight: 700; }
+      p { margin: 0.8rem 0; }
+      .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+      .hook {
+        background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+        border-left: 4px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before { content: "💡 "; }
+      .warn {
+        background: var(--warn-light);
+        border-left: 3px solid var(--warn);
+        padding: 0.9rem 1.2rem;
+        margin: 1.2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .warn::before { content: "⚠️ "; }
+      .try {
+        background: var(--accent-light);
+        border: 1px solid #a7f3d0;
+        padding: 1.2rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .try::before { content: "🧪 Try This: "; font-weight: 700; color: var(--accent); }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem 1.2rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.55;
+        margin: 1rem 0;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre code { background: none; padding: 0; font-size: inherit; }
+      .diagram {
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.45;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .recap {
+        background: white;
+        border: 2px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin: 2.5rem 0 1.5rem;
+        border-radius: var(--radius);
+      }
+      .recap h3 { margin-top: 0; color: var(--accent); }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav a { font-weight: 600; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .footnote { font-size: 0.82rem; color: var(--muted); margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+        width: 100%;
+        font-size: 0.92rem;
+      }
+      th, td {
+        border: 1px solid var(--border);
+        padding: 0.55rem 0.8rem;
+        text-align: left;
+      }
+      th { background: var(--code-bg); font-weight: 700; }
+      .pattern {
+        background: white;
+        border: 1px solid var(--border);
+        padding: 1.2rem 1.4rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .pattern h3 { margin-top: 0; }
+      .pattern .why {
+        background: var(--accent-light);
+        padding: 0.8rem 1rem;
+        margin: 0.8rem 0 0;
+        border-radius: var(--radius);
+        font-size: 0.92rem;
+      }
+      .pattern .why::before { content: "🎯 Why: "; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0004: Advanced Worktree Patterns</h1>
+    <p class="meta">Part of <a href="../MISSION.md">Git Worktrees for Parallel Agentic Coding</a> &nbsp;|&nbsp; ~12 minute read + exploration</p>
+
+    <div class="nav">
+      <a href="0003-edge-cases-and-debugging.html">← Lesson 0003: Edge Cases &amp; Debugging</a>
+      <span><a href="../../reference/glossary.html">→ Glossary (Reference)</a></span>
+    </div>
+
+    <div class="hook">
+      <strong>You've mastered the fundamentals.</strong> Now let's explore patterns that turn worktrees from "useful" into "indispensable" — the workflows that make you faster than developers who don't use them. These aren't edge cases; these are patterns you'll reach for regularly.
+    </div>
+
+    <h2>Pattern 1: The Hotfix Interrupt</h2>
+
+    <div class="pattern">
+      <h3>You're deep in a feature branch. Production is down. You need to fix <code>main</code> NOW.</h3>
+      <pre><code># Without worktrees: stash, checkout main, fix, commit, push,
+# checkout feature, stash pop, hope nothing went wrong.
+
+# With worktrees:
+git worktree add ../my-project-hotfix main
+cd ../my-project-hotfix
+# Fix the bug, commit, push
+git push origin main
+cd -
+git worktree remove ../my-project-hotfix
+# Your feature worktree is untouched. Zero context switch.</code></pre>
+      <div class="why">Without worktrees, a hotfix forces you to abandon your mental context — stash work-in-progress, switch branches, fix the bug, switch back, unstash. With a worktree, your feature branch stays exactly as you left it. You context-switch by <code>cd</code>-ing to a different directory, not by mutating your workspace.</div>
+    </div>
+
+    <div class="insight">
+      <strong>Hotfix worktrees should be temporary and short-lived.</strong> Create them at the moment of crisis, fix the issue, push, and remove the worktree. The <code>main</code> branch stays checked out in the main worktree — the hotfix worktree exists only for the duration of the fix.
+    </div>
+
+    <h2>Pattern 2: Code Review Worktree</h2>
+
+    <div class="pattern">
+      <h3>Review a PR without polluting your working directory.</h3>
+      <pre><code># Fetch the PR and create a review worktree:
+git fetch origin pull/42/head:pr-42
+git worktree add ~/dev/worktrees/review-42 pr-42
+
+# Review the code in isolation:
+cd ~/dev/worktrees/review-42
+# Read, test, leave comments...
+# When done:
+cd -
+git worktree remove ~/dev/worktrees/review-42
+git branch -D pr-42</code></pre>
+      <div class="why">Reviewing a PR in your main worktree means you either checkout the PR branch (losing your place) or read diffs on GitHub (limited). A review worktree gives you the full power of your editor, linter, and test suite — without disturbing your current work.</div>
+    </div>
+
+    <h2>Pattern 3: The Bisect Worktree</h2>
+
+    <div class="pattern">
+      <h3>Find which commit introduced a bug — while your main worktree stays productive.</h3>
+      <pre><code># Create a dedicated bisect worktree:
+git worktree add ../my-project-bisect main
+cd ../my-project-bisect
+
+# Run the bisect:
+git bisect start
+git bisect bad HEAD
+git bisect good v2.5.0
+
+# Test each commit...
+git bisect run npm test   # automated
+# or test manually:
+git bisect good   # or git bisect bad
+
+# When found, record the commit hash and clean up:
+git bisect reset
+cd -
+git worktree remove ../my-project-bisect</code></pre>
+      <div class="why"><code>git bisect</code> checks out different commits as it narrows the search. In a normal repo, this destroys your working tree state. A bisect worktree isolates the bisection — your main worktree stays on your feature branch, untouched.</div>
+    </div>
+
+    <div class="warn">
+      <strong><code>git bisect</code> modifies HEAD in the bisect worktree only.</strong> The shared refs mean the bisect state (refs/bisect/*) is technically visible everywhere, but the checkout changes only affect the bisect worktree's working tree. Other worktrees are unaffected.
+    </div>
+
+    <h2>Pattern 4: The Experiment Sandbox</h2>
+
+    <div class="pattern">
+      <h3>Try a radical refactor. If it fails, delete the worktree. No harm done.</h3>
+      <pre><code># Create a sandbox worktree for the experiment:
+git worktree add ~/dev/worktrees/experiment-refactor -b experiment/refactor-core
+
+cd ~/dev/worktrees/experiment-refactor
+# Try wild things. Rewrite the core module. Delete half the codebase.
+# If it works:
+git push origin experiment/refactor-core
+# Open a PR, get feedback.
+
+# If it fails:
+cd -
+git worktree remove --force ~/dev/worktrees/experiment-refactor
+git branch -D experiment/refactor-core
+# No trace left behind.</code></pre>
+      <div class="why">Fear of breaking things slows down exploration. A sandbox worktree eliminates that fear — it's a throwaway environment where failure has zero cost. This is especially powerful for agentic coding: let an agent loose in a sandbox worktree with instructions to "try a completely different approach" without worrying about collateral damage.</div>
+    </div>
+
+    <h2>Pattern 5: Long-Running Worktree for <code>main</code></h2>
+
+    <div class="pattern">
+      <h3>Keep <code>main</code> always checked out and clean, available at a moment's notice.</h3>
+      <pre><code># Set up once:
+git worktree add ~/dev/worktrees/main main
+
+# Your workflow:
+# - Main worktree: your current feature branch (changes daily)
+# - ~/dev/worktrees/main: always on main, always clean, always up to date
+
+# Before starting any merge:
+cd ~/dev/worktrees/main
+git pull origin main
+cd ~/dev/my-project
+git merge main    # main worktree now has latest main merged in</code></pre>
+      <div class="why">Having <code>main</code> always available in a dedicated worktree eliminates the "what branch am I on?" friction when you need to check something on <code>main</code>. It also serves as a clean reference point — you can always <code>diff</code> your feature branch against the known-good <code>main</code> checkout.</div>
+    </div>
+
+    <h2>Pattern 6: Multi-Agent Coordination Hub</h2>
+
+    <div class="pattern">
+      <h3>Orchestrate multiple AI coding agents working on different features simultaneously.</h3>
+      <pre><code># Your setup (one-time):
+# Main worktree (~/dev/my-project): your "control tower" — main branch
+# Worktree ~/dev/worktrees/agent-1: feat/dark-mode
+# Worktree ~/dev/worktrees/agent-2: fix/login-timeout
+# Worktree ~/dev/worktrees/agent-3: refactor/api-layer
+
+# Agent workflow (per agent):
+# 1. Agent works in its assigned worktree
+# 2. Agent commits and pushes its branch
+# 3. You review from the main worktree
+# 4. You merge from the main worktree
+# 5. You remove the agent's worktree
+
+# Script helper:
+agent-worktree() {
+  local agent="$1"
+  local branch="$2"
+  local path="$HOME/dev/worktrees/agent-$agent"
+
+  git worktree add "$path" -b "$branch" && echo "Agent $agent ready at $path"
+}
+
+agent-done() {
+  local agent="$1"
+  git worktree remove "$HOME/dev/worktrees/agent-$agent"
+}</code></pre>
+      <div class="why">This pattern is the culmination of the course. Each agent gets an isolated, stable workspace. The main worktree is your integration point — it stays on <code>main</code>, receives merges, and never has WIP. You can spin up or tear down agent worktrees in seconds.</div>
+    </div>
+
+    <h2>Pattern 7: CI/CD Debugging Worktree</h2>
+
+    <div class="pattern">
+      <h3>Debug a CI failure that only happens on a specific commit.</h3>
+      <pre><code># CI says commit abc1234 is broken. Reproduce locally:
+git worktree add --detach ~/dev/worktrees/ci-debug abc1234
+cd ~/dev/worktrees/ci-debug
+# Reproduce the failure, debug, find the fix.
+# Create a branch from here if needed:
+git switch -c fix/ci-regression
+# Apply the fix, push, create PR.
+cd -
+git worktree remove ~/dev/worktrees/ci-debug</code></pre>
+      <div class="why">Debugging a CI failure at a specific commit is a one-off task — you shouldn't need to disturb your main workspace for it. A detached worktree at the failing commit gives you an exact reproduction environment with zero setup cost.</div>
+    </div>
+
+    <h2>Putting It All Together: Your Worktree Layout</h2>
+
+    <p>After this course, here's what a well-organized worktree setup looks like for daily agentic coding:</p>
+
+    <div class="diagram">
+~/dev/
+├── my-project/                  ← MAIN WORKTREE → main branch (control tower)
+│   └── .git/                    ← shared git database
+│       └── worktrees/
+│           ├── main/
+│           ├── agent-1/
+│           ├── agent-2/
+│           └── ...
+└── worktrees/
+    ├── main/                    ← long-running: main always available
+    ├── agent-1/                 ← temporary: feat/dark-mode (Agent 1)
+    ├── agent-2/                 ← temporary: fix/login-timeout (Agent 2)
+    ├── review-42/               ← temporary: PR review
+    ├── hotfix-2026-06-10/       ← temporary: emergency fix
+    ├── bisect-perf-regression/  ← temporary: bisect session
+    └── experiment-refactor/     ← temporary: sandbox exploration</code></pre>
+
+    <div class="insight">
+      <strong>The main worktree is your control tower.</strong> It stays on <code>main</code>, always clean. You merge, review, and coordinate from here. All other worktrees are temporary — created for a specific task, removed when done. The <code>main</code> worktree is the one long-running exception because having <code>main</code> always at hand is that useful.
+    </div>
+
+    <h2>Course Summary: What You Now Know</h2>
+
+    <table>
+      <tr><th>Lesson</th><th>Core takeaway</th></tr>
+      <tr>
+        <td><a href="0000-git-worktrees-mental-model.html">0000: Mental Model</a></td>
+        <td>A worktree is an additional working tree attached to the same <code>.git</code>. Shared database, isolated workspace. The <code>.git</code> in a linked worktree is a pointer file.</td>
+      </tr>
+      <tr>
+        <td><a href="0001-creating-and-listing-worktrees.html">0001: Creating &amp; Listing</a></td>
+        <td><code>git worktree add</code> creates a worktree in under a second. <code>git worktree list</code> is your dashboard. <code>git worktree remove</code> cleans up safely.</td>
+      </tr>
+      <tr>
+        <td><a href="0002-working-in-parallel.html">0002: Working in Parallel</a></td>
+        <td>One worktree per agent per branch. The lifecycle is: create → work concurrently → merge → cleanup. Wrap it in shell functions.</td>
+      </tr>
+      <tr>
+        <td><a href="0003-edge-cases-and-debugging.html">0003: Edge Cases</a></td>
+        <td>Rebase coordination, detached HEAD, orphaned metadata, branch conflicts, merge conflicts. Your diagnostic toolkit: <code>git worktree list</code>, <code>ls .git/worktrees/</code>, <code>cat .git</code>.</td>
+      </tr>
+      <tr>
+        <td><a href="0004-advanced-patterns.html">0004: Advanced Patterns</a></td>
+        <td>Hotfix interrupt, code review worktree, bisect worktree, experiment sandbox, long-running main, multi-agent hub, CI debug.</td>
+      </tr>
+    </table>
+
+    <div class="recap">
+      <h3>Final Recap</h3>
+      <ul>
+        <li>Worktrees eliminate the context-switching cost of git branches. <code>cd</code> replaces <code>git checkout</code>.</li>
+        <li>Every worktree shares the same git history but has its own working tree, index, and HEAD. This is the fundamental invariant.</li>
+        <li>The patterns — hotfix, review, bisect, sandbox, CI debug, multi-agent — all derive from the same principle: <strong>isolate the workspace, share the database</strong>.</li>
+        <li>Hygiene matters: remove worktrees when done, never <code>rm -rf</code>, prune periodically, coordinate rebases.</li>
+        <li>You are now positioned to run multiple AI coding agents in parallel, each in its own worktree, with zero friction.</li>
+      </ul>
+    </div>
+
+    <div class="nav">
+      <a href="0003-edge-cases-and-debugging.html">← Lesson 0003: Edge Cases &amp; Debugging</a>
+      <span><a href="../../reference/glossary.html">→ Glossary (Reference)</a></span>
+    </div>
+
+    <div class="footnote">
+      <p><strong>Primary source:</strong> <a href="https://github.blog/open-source/git/git-worktrees-a-practical-guide/">Git Worktrees: A Practical Guide — The GitHub Blog</a> covers several of these patterns. The <a href="https://git-scm.com/docs/git-worktree">official docs</a> have full flag documentation for every command used.</p>
+      <p><strong>Going further:</strong> Explore <a href="https://git-scm.com/docs/git-bisect">git-bisect</a> for automated bisection, and consider integrating worktree creation into your agent orchestration scripts.</p>
+      <p><strong>Ask questions:</strong> "How do I integrate worktrees with my specific agent orchestration setup?" or "What's the best way to share worktree conventions across a team?" — your agent-teacher can help you adapt these patterns to your exact workflow.</p>
+    </div>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0003-edge-cases-and-debugging.html" style="color:#059669;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <span style="color:#ccc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</span>
+  </nav>
+
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DarkMark Tutorials</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --border: #e5e0d8;
+        --radius: 8px;
+
+        /* Collection accent colors */
+        --bitcoin: #f7931a;
+        --bitcoin-light: #fff7ed;
+        --bitcoin-border: #fed7aa;
+
+        --git: #059669;
+        --git-light: #ecfdf5;
+        --git-border: #a7f3d0;
+
+        --math: #2563eb;
+        --math-light: #eff6ff;
+        --math-border: #bfdbfe;
+
+        --font-mono: "SF Mono", "Fira Code", "Menlo", "Consolas", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem 6rem;
+      }
+
+      /* ── Header ──────────────────────────── */
+      header {
+        text-align: center;
+        margin-bottom: 3.5rem;
+      }
+      header h1 {
+        font-size: 2.4rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.4rem;
+      }
+      header .subtitle {
+        color: var(--muted);
+        font-size: 1.05rem;
+        font-style: italic;
+      }
+
+      /* ── Collection Cards ────────────────── */
+      .library {
+        display: flex;
+        flex-direction: column;
+        gap: 1.6rem;
+      }
+
+      .collection-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.8rem 2rem;
+        transition:
+          box-shadow 0.2s ease,
+          transform 0.15s ease;
+        position: relative;
+      }
+      .collection-card:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+        transform: translateY(-2px);
+      }
+      .collection-card:active {
+        transform: translateY(0);
+      }
+
+      /* Accent top stripe per collection */
+      .collection-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        border-radius: var(--radius) var(--radius) 0 0;
+      }
+      .collection-card.card-bitcoin::before {
+        background: var(--bitcoin);
+      }
+      .collection-card.card-git::before {
+        background: var(--git);
+      }
+      .collection-card.card-math::before {
+        background: var(--math);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        margin-bottom: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .card-header h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .card-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.15em 0.55em;
+        border-radius: 4px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .badge-bitcoin {
+        background: var(--bitcoin-light);
+        color: #c2410c;
+      }
+      .badge-git {
+        background: var(--git-light);
+        color: #047857;
+      }
+      .badge-math {
+        background: var(--math-light);
+        color: #1d4ed8;
+      }
+
+      .card-mission {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin-bottom: 0.7rem;
+        line-height: 1.55;
+      }
+      .card-meta {
+        font-size: 0.85rem;
+        color: var(--muted);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .card-meta span {
+        margin-right: 1.2rem;
+        white-space: nowrap;
+      }
+
+      /* ── Footer ──────────────────────────── */
+      footer {
+        margin-top: 4rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+        border-top: 1px solid var(--border);
+        padding-top: 1.5rem;
+      }
+      footer a {
+        color: var(--muted);
+      }
+
+      /* ── Responsive ──────────────────────── */
+      @media (max-width: 600px) {
+        body {
+          font-size: 16px;
+          padding: 2rem 1rem 4rem;
+        }
+        header h1 {
+          font-size: 1.8rem;
+        }
+        .collection-card {
+          padding: 1.4rem 1.3rem;
+        }
+        .card-header h2 {
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>DarkMark Tutorials</h1>
+      <p class="subtitle">
+        A living library of self-paced, deep-understanding courses
+      </p>
+    </header>
+
+    <main class="library">
+      <!-- ── Bitcoin ───────────────────────── -->
+      <a href="learn-bitcoin/" class="collection-card card-bitcoin">
+        <div class="card-header">
+          <h2>Learn Bitcoin</h2>
+          <span class="card-badge badge-bitcoin">4 lessons</span>
+        </div>
+        <p class="card-mission">
+          Understand the Bitcoin transaction lifecycle end-to-end — from key
+          generation and UTXO structure through signature, broadcast, mempool,
+          mining, and final confirmation. Protocol-level depth for the curious
+          developer.
+        </p>
+        <p class="card-meta">
+          <span>₿ Bitcoin</span>
+          <span>4 lessons</span>
+          <span>1 reference</span>
+        </p>
+      </a>
+
+      <!-- ── Git Worktrees ─────────────────── -->
+      <a href="learn-git-worktrees/" class="collection-card card-git">
+        <div class="card-header">
+          <h2>Learn Git Worktrees</h2>
+          <span class="card-badge badge-git">5 lessons</span>
+        </div>
+        <p class="card-mission">
+          Master git worktrees for parallel agentic coding — spin up isolated
+          working directories per AI agent, share a single .git repository, and
+          never accidentally step on your own state. Infrastructure for your
+          daily workflow.
+        </p>
+        <p class="card-meta">
+          <span>⎇ Git</span>
+          <span>5 lessons</span>
+          <span>Glossary</span>
+        </p>
+      </a>
+
+      <!-- ── Math for AI ───────────────────── -->
+      <a href="learn-math-for-ai/" class="collection-card card-math">
+        <div class="card-header">
+          <h2>Learn Math for AI</h2>
+          <span class="card-badge badge-math">15 lessons</span>
+        </div>
+        <p class="card-mission">
+          Develop the linear algebra and probability depth to genuinely
+          understand what AI systems do, where they fail, and how to think
+          through approaches — grounded in the actual mathematics rather than
+          marketing or vibes. The full transformer architecture, from vectors to
+          attention.
+        </p>
+        <p class="card-meta">
+          <span>∑ Math</span>
+          <span>15 lessons</span>
+          <span>2 pillars + bridge</span>
+        </p>
+      </a>
+    </main>
+
+    <footer>
+      <p>
+        Built with the
+        <a href="https://github.com/Mark/darkmark-tutorials">teach</a> skill —
+        self-paced, deep-understanding tutorials in pure HTML. <br />All content
+        in the public domain (<a href="LICENSE">The Unlicense</a>).
+      </p>
+    </footer>
+  </body>
+</html>

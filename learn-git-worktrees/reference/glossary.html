@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git Worktrees — Glossary</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #059669;
+        --accent-light: #d1fae5;
+        --border: #e5e0d8;
+        --code-bg: #f3f2ef;
+        --radius: 6px;
+        --font-mono: "SF Mono", "Fira Code", "Menlo", "Consolas", monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.3rem;
+        margin: 2.2rem 0 0.6rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.3rem;
+      }
+      p {
+        margin: 0.6rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .term {
+        background: white;
+        border: 1px solid var(--border);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0;
+        border-radius: var(--radius);
+      }
+      .term dt {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--accent);
+        margin-bottom: 0.3rem;
+      }
+      .term dd {
+        margin-left: 1.2rem;
+        color: var(--text);
+      }
+      .see-also {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 0.4rem;
+      }
+      .see-also::before {
+        content: "See also: ";
+        font-weight: 600;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav a {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Git Worktrees — Glossary</h1>
+    <p class="meta">
+      Quick-reference definitions for the concepts in the
+      <a href="../MISSION.md">Git Worktrees for Parallel Agentic Coding</a>
+      course. Designed for printing.
+    </p>
+
+    <div class="nav">
+      <a href="../lessons/0004-advanced-patterns.html"
+        >← Lesson 0004: Advanced Patterns</a
+      >
+      <a href="../lessons/0000-git-worktrees-mental-model.html"
+        >Lesson 0000: Mental Model →</a
+      >
+    </div>
+
+    <h2>Core Concepts</h2>
+
+    <dl>
+      <div class="term">
+        <dt>Worktree</dt>
+        <dd>
+          A working tree (directory of checked-out files) attached to a git
+          repository. Every git repository starts with one — the
+          <em>main worktree</em>. Additional worktrees can be created with
+          <code>git worktree add</code>.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0000-git-worktrees-mental-model.html"
+            >Lesson 0000</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt>Main Worktree</dt>
+        <dd>
+          The original worktree created when you ran <code>git clone</code> or
+          <code>git init</code>. Its <code>.git</code> is a
+          <strong>directory</strong> containing the full git database.
+          Distinguished from linked worktrees by having the real
+          <code>.git/</code> directory rather than a pointer file.
+        </dd>
+        <div class="see-also">Linked Worktree, Pointer File</div>
+      </div>
+
+      <div class="term">
+        <dt>Linked Worktree</dt>
+        <dd>
+          Any worktree created with <code>git worktree add</code> beyond the
+          main worktree. Its <code>.git</code> is a <strong>file</strong> (not a
+          directory) that points to metadata in the main worktree's
+          <code>.git/worktrees/&lt;name&gt;/</code>.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0000-git-worktrees-mental-model.html"
+            >Lesson 0000</a
+          >,
+          <a href="../lessons/0001-creating-and-listing-worktrees.html"
+            >Lesson 0001</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt>Pointer File (<code>.git</code> file)</dt>
+        <dd>
+          In a linked worktree, <code>.git</code> is not a directory — it's a
+          single file containing the line
+          <code>gitdir: /path/to/main/.git/worktrees/name/</code>. This is how
+          git knows which worktree-specific metadata (HEAD, index, reflog) to
+          use. Run <code>cat .git</code> to see it.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0000-git-worktrees-mental-model.html"
+            >Lesson 0000</a
+          >,
+          <a href="../lessons/0001-creating-and-listing-worktrees.html"
+            >Lesson 0001</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt>Worktree Metadata (<code>.git/worktrees/</code>)</dt>
+        <dd>
+          A directory in the main worktree's <code>.git/</code> that contains
+          per-worktree state: <code>HEAD</code>, <code>index</code>,
+          <code>ORIG_HEAD</code>, <code>logs/</code>, <code>commondir</code>,
+          and <code>gitdir</code>. Each linked worktree has one subdirectory
+          here. Orphaned entries (from <code>rm -rf</code>) can be cleaned with
+          <code>git worktree prune</code>.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0001-creating-and-listing-worktrees.html"
+            >Lesson 0001</a
+          >,
+          <a href="../lessons/0003-edge-cases-and-debugging.html"
+            >Lesson 0003</a
+          >
+        </div>
+      </div>
+    </dl>
+
+    <h2>Commands</h2>
+
+    <dl>
+      <div class="term">
+        <dt><code>git worktree add &lt;path&gt; [&lt;branch&gt;]</code></dt>
+        <dd>
+          Create a new worktree at <code>&lt;path&gt;</code>. If
+          <code>&lt;branch&gt;</code> is specified, check it out. With
+          <code>-b &lt;name&gt;</code>, create a new branch simultaneously. With
+          <code>--detach</code>, check out a specific commit in detached HEAD.
+          The path must not already exist and must be outside the current
+          worktree.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0001-creating-and-listing-worktrees.html"
+            >Lesson 0001</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt><code>git worktree list</code></dt>
+        <dd>
+          Show all worktrees: path, commit hash, and branch name (or "detached
+          HEAD"). Add <code>--porcelain</code> for machine-parseable output. Add
+          <code>-v</code> / <code>--verbose</code> for additional detail.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0001-creating-and-listing-worktrees.html"
+            >Lesson 0001</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt><code>git worktree remove &lt;path&gt;</code></dt>
+        <dd>
+          Safely remove a worktree. Refuses if the worktree has uncommitted
+          changes (override with <code>--force</code>). Also cleans up the
+          metadata in <code>.git/worktrees/</code>. Always prefer this over
+          <code>rm -rf</code>.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0001-creating-and-listing-worktrees.html"
+            >Lesson 0001</a
+          >,
+          <a href="../lessons/0003-edge-cases-and-debugging.html"
+            >Lesson 0003</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt><code>git worktree prune</code></dt>
+        <dd>
+          Remove metadata for worktrees whose directories no longer exist (e.g.,
+          if someone used <code>rm -rf</code>). Safe to run anytime — only
+          removes entries where the worktree directory is confirmed gone. Add
+          <code>--expire &lt;time&gt;</code> to only prune entries older than a
+          threshold.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0003-edge-cases-and-debugging.html"
+            >Lesson 0003</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt><code>git worktree lock &lt;path&gt;</code></dt>
+        <dd>
+          Prevent a worktree from being pruned (e.g., if it's on removable
+          media). Unlock with <code>git worktree unlock &lt;path&gt;</code>.
+        </dd>
+      </div>
+
+      <div class="term">
+        <dt><code>git worktree move &lt;path&gt; &lt;new-path&gt;</code></dt>
+        <dd>
+          Move a worktree to a new location. Updates the pointer file and
+          metadata. Safer than <code>mv</code> because it also updates all
+          internal references.
+        </dd>
+      </div>
+
+      <div class="term">
+        <dt><code>git worktree repair &lt;path&gt;</code></dt>
+        <dd>
+          Repair worktree metadata if the main worktree was moved or the paths
+          are broken. Useful after moving a repo to a new location.
+        </dd>
+      </div>
+    </dl>
+
+    <h2>Concepts for Reasoning</h2>
+
+    <dl>
+      <div class="term">
+        <dt>Shared vs. Isolated State</dt>
+        <dd>
+          The fundamental invariant of worktrees. <strong>Shared</strong> across
+          all worktrees: object database (<code>.git/objects/</code>), refs
+          (<code>.git/refs/</code>), config, hooks.
+          <strong>Isolated</strong> per worktree: working tree files, index
+          (staging area), HEAD, reflog. A commit made in any worktree is
+          immediately visible in all others; a staged change is visible only in
+          the worktree where it was staged.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0000-git-worktrees-mental-model.html"
+            >Lesson 0000</a
+          >,
+          <a href="../lessons/0001-creating-and-listing-worktrees.html"
+            >Lesson 0001</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt>One-Branch-Per-Worktree Rule</dt>
+        <dd>
+          Git refuses to check out the same branch in two worktrees
+          simultaneously. This prevents conflicting working-tree states. The
+          branch can exist in only one worktree's HEAD at a time.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0000-git-worktrees-mental-model.html"
+            >Lesson 0000</a
+          >,
+          <a href="../lessons/0003-edge-cases-and-debugging.html"
+            >Lesson 0003</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt>Detached HEAD in a Worktree</dt>
+        <dd>
+          A worktree created with <code>--detach</code> or checked out to a
+          specific commit (not a branch). Commits made here are only reachable
+          via the reflog until a branch is created. Useful for reviewing PRs,
+          bisecting, or debugging CI failures at a specific commit.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0003-edge-cases-and-debugging.html">Lesson 0003</a
+          >, <a href="../lessons/0004-advanced-patterns.html">Lesson 0004</a>
+        </div>
+      </div>
+
+      <div class="term">
+        <dt>Prunable Worktree</dt>
+        <dd>
+          A worktree whose directory has been deleted (e.g., via
+          <code>rm -rf</code>) but whose metadata still exists in
+          <code>.git/worktrees/</code>. Shown in
+          <code>git worktree list</code> with the "prunable" annotation. Cleaned
+          up with <code>git worktree prune</code>.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0003-edge-cases-and-debugging.html"
+            >Lesson 0003</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt>Control Tower (Pattern)</dt>
+        <dd>
+          The main worktree kept on the <code>main</code> branch, always clean,
+          used as the integration, merge, and coordination point. All other
+          worktrees are temporary — created for a task, removed when done. The
+          <code>main</code> worktree is the one long-running exception.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0002-working-in-parallel.html">Lesson 0002</a>,
+          <a href="../lessons/0004-advanced-patterns.html">Lesson 0004</a>
+        </div>
+      </div>
+    </dl>
+
+    <h2>Danger Zone</h2>
+
+    <dl>
+      <div class="term">
+        <dt>Rebase Across Worktrees</dt>
+        <dd>
+          Rebasing a branch that is checked out in another worktree causes that
+          worktree's HEAD to diverge. The affected worktree must be reset with
+          <code>git reset --hard &lt;branch&gt;</code> to realign. Prevention:
+          remove the worktree before rebasing its branch, or coordinate.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0003-edge-cases-and-debugging.html"
+            >Lesson 0003</a
+          >
+        </div>
+      </div>
+
+      <div class="term">
+        <dt><code>rm -rf</code> on a Worktree</dt>
+        <dd>
+          Deleting a worktree directory manually orphans the metadata in
+          <code>.git/worktrees/</code>. The branch may still be marked as
+          "checked out" and you'll get errors trying to check it out elsewhere.
+          Always use <code>git worktree remove</code> instead. Recovery:
+          <code>git worktree prune</code>.
+        </dd>
+        <div class="see-also">
+          <a href="../lessons/0003-edge-cases-and-debugging.html"
+            >Lesson 0003</a
+          >
+        </div>
+      </div>
+    </dl>
+
+    <div class="nav">
+      <a href="../lessons/0004-advanced-patterns.html"
+        >← Lesson 0004: Advanced Patterns</a
+      >
+      <a href="../lessons/0000-git-worktrees-mental-model.html"
+        >Lesson 0000: Mental Model →</a
+      >
+    </div>
+  </body>
+</html>

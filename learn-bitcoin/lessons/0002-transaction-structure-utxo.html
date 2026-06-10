@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0002 — Transaction Structure & the UTXO Model</title>
+    <style>
+      :root {
+        --bg: #fffef9;
+        --text: #1a1a1a;
+        --muted: #5e5e5e;
+        --accent: #f7931a;
+        --accent-dark: #d97c0d;
+        --border: #e0dcd0;
+        --card-bg: #faf8f3;
+        --code-bg: #f4f1ea;
+        --highlight: #fff3e0;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text);
+      }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 2.5rem 0 0.75rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 2px solid var(--accent);
+        color: var(--text);
+      }
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 1.75rem 0 0.5rem;
+        color: var(--text);
+      }
+      p {
+        margin: 0.75rem 0;
+      }
+      .lesson-meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .lesson-meta span {
+        margin-right: 1.25rem;
+      }
+      .callout {
+        background: var(--highlight);
+        border: 1px solid var(--accent);
+        border-left: 4px solid var(--accent);
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        font-size: 0.93rem;
+      }
+      .callout strong {
+        color: var(--accent-dark);
+      }
+      .field-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+      }
+      .field-table th {
+        background: var(--accent);
+        color: white;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        font-weight: 600;
+      }
+      .field-table td {
+        padding: 0.4rem 0.7rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .field-table tr:nth-child(even) {
+        background: var(--card-bg);
+      }
+      .field-table .size {
+        color: var(--muted);
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 0.85em;
+        white-space: nowrap;
+      }
+      code {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.82em;
+        background: #2d2d2d;
+        color: #e8e8e8;
+        padding: 1rem 1.2rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        line-height: 1.5;
+        margin: 1rem 0;
+      }
+      .diagram {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.25rem 0;
+        overflow-x: auto;
+      }
+      .diagram pre {
+        background: transparent;
+        color: var(--text);
+        padding: 0;
+        margin: 0;
+        font-size: 0.82em;
+        line-height: 1.6;
+      }
+      .highlight-box {
+        border: 2px solid var(--accent);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.25rem 0;
+        background: var(--highlight);
+      }
+      ul,
+      ol {
+        margin: 0.5rem 0 0.5rem 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      cite {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.3rem;
+      }
+      cite a {
+        color: var(--muted);
+      }
+      .quiz {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.5rem 0;
+      }
+      .quiz h4 {
+        margin-bottom: 0.6rem;
+      }
+      .quiz label {
+        display: block;
+        margin: 0.35rem 0;
+        cursor: pointer;
+        font-size: 0.93rem;
+      }
+      .quiz input[type="radio"] {
+        margin-right: 0.5rem;
+      }
+      .quiz button {
+        margin-top: 0.6rem;
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .quiz button:hover {
+        background: var(--accent-dark);
+      }
+      .quiz .feedback {
+        margin-top: 0.6rem;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        display: none;
+      }
+      .quiz .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .feedback.incorrect {
+        background: #fce4ec;
+        color: #c62828;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      .nav a {
+        color: var(--accent-dark);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .nav a:hover {
+        text-decoration: underline;
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      @media (max-width: 600px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+        body {
+          padding: 1.5rem 1rem;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0002: Transaction Structure & the UTXO Model</h1>
+    <div class="lesson-meta">
+      <span>⏱ ~18 minutes</span>
+      <span>📅 2026-06-10</span>
+      <span>🎯 Bottom-Up • Fundamentals</span>
+    </div>
+
+    <div class="callout">
+      <strong>Goal:</strong> Understand exactly what a Bitcoin transaction
+      <em>is</em> — its binary structure, the UTXO model, how inputs reference
+      outputs, how locking and unlocking scripts work, and why "your balance" is
+      a fiction.
+    </div>
+
+    <h2>The UTXO Model: There Are No Accounts</h2>
+
+    <p>
+      Bitcoin does <strong>not</strong> have accounts or balances. This is the
+      single most important thing to internalize. Instead, Bitcoin uses the
+      <strong>UTXO model</strong> (Unspent Transaction Output).
+    </p>
+
+    <div class="highlight-box">
+      <p>
+        <strong>UTXO = Unspent Transaction Output.</strong> A UTXO is a discrete
+        chunk of bitcoin — a specific amount locked to a specific condition
+        (script). When your wallet says you have "5 BTC," it means the sum of
+        all UTXOs you can unlock is 5 BTC. You don't have a balance; you have a
+        <em>collection of unspent outputs</em>.
+      </p>
+    </div>
+
+    <h3>Analogy: Physical Cash</h3>
+    <p>
+      Imagine you have a $20 bill and a $5 bill in your pocket. You don't have a
+      "$25 account" — you have two specific, indivisible notes. To pay $23, you
+      hand over the $20 bill <em>and</em> the $5 bill, receive $2 in change (a
+      new note), and destroy the original two notes. This is exactly how Bitcoin
+      works: UTXOs are indivisible (you must spend them entirely), and change
+      comes back as a new UTXO.
+    </p>
+
+    <h2>Transaction Structure: The Raw Anatomy</h2>
+
+    <p>
+      A Bitcoin transaction is a binary message with a well-defined structure.
+      Here's the complete field layout:
+    </p>
+
+    <table class="field-table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Size</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Version</strong></td>
+          <td class="size">4 bytes</td>
+          <td>
+            Transaction format version (currently 1 or 2). Signals which rules
+            to validate against.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>SegWit Flag</strong></td>
+          <td class="size">0 or 2 bytes</td>
+          <td>
+            Optional. If present, <code>0x0001</code> — indicates witness data
+            follows (SegWit).
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Input Count</strong></td>
+          <td class="size">1–9 bytes (varint)</td>
+          <td>Number of inputs. Never zero (except coinbase).</td>
+        </tr>
+        <tr>
+          <td><strong>Inputs</strong></td>
+          <td class="size">variable</td>
+          <td>
+            Array of TxIn structures (see below). Each input spends one UTXO.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Output Count</strong></td>
+          <td class="size">1–9 bytes (varint)</td>
+          <td>Number of outputs.</td>
+        </tr>
+        <tr>
+          <td><strong>Outputs</strong></td>
+          <td class="size">variable</td>
+          <td>Array of TxOut structures. Each output creates a new UTXO.</td>
+        </tr>
+        <tr>
+          <td><strong>Witness Data</strong></td>
+          <td class="size">variable</td>
+          <td>Only if SegWit flag present. One witness stack per input.</td>
+        </tr>
+        <tr>
+          <td><strong>Locktime</strong></td>
+          <td class="size">4 bytes</td>
+          <td>
+            Earliest time/block height the transaction can be included. 0 =
+            immediately.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <cite
+      >Source:
+      <a href="https://en.bitcoin.it/wiki/Protocol_documentation#tx"
+        >Bitcoin Wiki — tx message</a
+      >;
+      <a
+        href="https://developer.bitcoin.org/devguide/transactions.html#introduction"
+        >Bitcoin Developer Guide — Transactions Introduction</a
+      ></cite
+    >
+
+    <h2>TxIn: The Input Structure</h2>
+
+    <table class="field-table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Size</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Previous TxID</strong></td>
+          <td class="size">32 bytes</td>
+          <td>
+            The hash (txid) of the transaction containing the UTXO being spent.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Output Index (vout)</strong></td>
+          <td class="size">4 bytes</td>
+          <td>
+            Which output (0-based) in the previous transaction is being spent.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Script Length</strong></td>
+          <td class="size">varint</td>
+          <td>Byte length of the unlocking script.</td>
+        </tr>
+        <tr>
+          <td><strong>ScriptSig</strong></td>
+          <td class="size">variable</td>
+          <td>
+            The <strong>unlocking script</strong> — data (signatures, public
+            keys) that satisfies the previous output's locking script.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Sequence</strong></td>
+          <td class="size">4 bytes</td>
+          <td>
+            Originally for payment channel updating; now used with locktime (set
+            to <code>0xffffffff</code> to finalize).
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>The OutPoint (TxID + vout):</strong> Together, the 32-byte txid
+      and 4-byte output index form an <strong>outpoint</strong> — a unique
+      pointer to exactly one UTXO. Think of it as a coordinate: "transaction
+      abc123... output #2." Every UTXO in existence has a unique outpoint. An
+      outpoint can only be spent <em>once</em> — attempting to spend the same
+      outpoint twice is a double-spend and will be rejected.
+    </div>
+
+    <h2>TxOut: The Output Structure</h2>
+
+    <table class="field-table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Size</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Value</strong></td>
+          <td class="size">8 bytes</td>
+          <td>
+            Amount in <strong>satoshis</strong> (1 BTC = 100,000,000 satoshis).
+            A 64-bit signed integer.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Script Length</strong></td>
+          <td class="size">varint</td>
+          <td>Byte length of the locking script.</td>
+        </tr>
+        <tr>
+          <td><strong>ScriptPubKey</strong></td>
+          <td class="size">variable</td>
+          <td>
+            The <strong>locking script</strong> — conditions that must be met to
+            spend this output.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Locking Scripts (ScriptPubKey) & Unlocking Scripts (ScriptSig)</h2>
+
+    <p>
+      This is where Bitcoin's programmability lives. Every output has a
+      <strong>locking script</strong> (ScriptPubKey) — a small program written
+      in Bitcoin Script that defines the conditions for spending. When someone
+      wants to spend that output, they provide an
+      <strong>unlocking script</strong> (ScriptSig) that satisfies those
+      conditions.
+    </p>
+
+    <p>
+      The validation process concatenates the two scripts — ScriptSig first,
+      then ScriptPubKey — and executes them on a stack machine. If execution
+      completes without error and leaves a <strong>true</strong> (non-zero)
+      value on the stack, the spend is authorized.
+    </p>
+
+    <h3>The Most Common Pattern: P2PKH (Pay to Public Key Hash)</h3>
+
+    <div class="two-col">
+      <div>
+        <p>
+          <strong>Locking Script (ScriptPubKey)</strong> — set by the sender:
+        </p>
+        <pre style="font-size: 0.82em; padding: 0.6rem">
+OP_DUP
+OP_HASH160
+&lt;pubkey-hash&gt;
+OP_EQUALVERIFY
+OP_CHECKSIG</pre
+        >
+      </div>
+      <div>
+        <p>
+          <strong>Unlocking Script (ScriptSig)</strong> — provided by the
+          spender:
+        </p>
+        <pre style="font-size: 0.82em; padding: 0.6rem">
+&lt;signature&gt;
+&lt;public-key&gt;</pre
+        >
+      </div>
+    </div>
+
+    <div class="diagram">
+      <strong>Stack execution walkthrough:</strong>
+      <pre>
+Stack: []
+  1. Push &lt;sig&gt;        → [sig]
+  2. Push &lt;pubkey&gt;      → [sig, pubkey]
+  3. OP_DUP              → [sig, pubkey, pubkey]
+  4. OP_HASH160          → [sig, pubkey, hash(pubkey)]
+  5. Push &lt;pubkey-hash&gt; → [sig, pubkey, hash(pubkey), pubkey-hash]
+  6. OP_EQUALVERIFY      → [sig, pubkey]  (fails if hashes don't match)
+  7. OP_CHECKSIG         → [true]  (fails if sig doesn't match pubkey)
+  → VALID ✓</pre
+      >
+    </div>
+
+    <p>
+      The genius of this system: the sender doesn't need to know the recipient's
+      public key — just its hash. The recipient reveals their public key
+      <em>only at spending time</em>, providing a layer of privacy. Once spent,
+      the public key is visible on-chain, which is why address reuse is
+      discouraged.
+    </p>
+
+    <cite
+      >Source:
+      <a
+        href="https://developer.bitcoin.org/devguide/transactions.html#p2pkh-script-validation"
+        >Bitcoin Developer Guide — P2PKH Script Validation</a
+      ></cite
+    >
+
+    <h2>The Fee Mechanism: Inputs − Outputs = Fee</h2>
+
+    <p>
+      There is no "fee" field in a transaction. The fee is
+      <strong>implicit</strong>:
+    </p>
+
+    <div class="highlight-box">
+      <p style="text-align: center; font-size: 1.1rem">
+        <strong>Fee = Σ(input values) − Σ(output values)</strong>
+      </p>
+      <p style="text-align: center; font-size: 1.1rem">
+        <strong>Feerate = Fee / (transaction weight / 4) [sat/vB]</strong>
+      </p>
+    </div>
+
+    <p>
+      The miner who includes the transaction collects this difference. Because
+      UTXOs must be spent in full, you almost always need a
+      <strong>change output</strong> — an output sending the excess back to
+      yourself (to a fresh address).
+    </p>
+
+    <h3>Example Transaction</h3>
+    <div class="diagram">
+      <pre>
+Alice wants to pay Bob 0.01 BTC. She has one UTXO worth 0.05 BTC.
+
+Inputs:  1 UTXO (0.05 BTC)         = 5,000,000 sat
+Outputs:
+  → Bob:       0.01 BTC            = 1,000,000 sat
+  → Change:    0.0399 BTC          = 3,990,000 sat
+Fee:           0.0001 BTC          =    10,000 sat
+
+5,000,000 − (1,000,000 + 3,990,000) = 10,000 sat fee
+</pre
+      >
+    </div>
+
+    <h2>The Chain of Ownership</h2>
+
+    <p>
+      Every transaction (except coinbase) consumes UTXOs and creates new ones.
+      This creates a directed graph of ownership, traceable all the way back to
+      the coinbase transactions that originally created the bitcoin. A valid
+      transaction is one where every input's ScriptSig correctly unlocks the
+      ScriptPubKey of the UTXO it references.
+    </p>
+
+    <div class="diagram">
+      <pre>
+Coinbase Tx         Tx A                Tx B (Alice→Bob)
+┌──────────┐       ┌──────────┐         ┌──────────┐
+│ Input:   │       │ Input:   │         │ Input:   │
+│  (none)  │       │  ┌──────┐│         │  ┌──────┐│
+│          │       │  │CB out││─────────│──│TxA #1││
+│ Output:  │───┐   │  └──────┘│         │  └──────┘│
+│  50 BTC  │   │   │          │         │          │
+│  (UTXO)  │   │   │ Output:  │         │ Output:  │
+└──────────┘   │   │  25 BTC──│─────────│→ 0.01 BTC│ (Bob's UTXO)
+               └───│→(UTXO)   │         │          │
+                   └──────────┘         │  24.99──│→ (Change UTXO)
+                                        └──────────┘
+</pre
+      >
+    </div>
+
+    <div class="quiz" id="quiz1">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        Alice has a 1 BTC UTXO and wants to send 0.3 BTC to Bob with a 0.0001
+        BTC fee. How much change does she get back?
+      </p>
+      <label><input type="radio" name="q1" value="a" /> 0.7 BTC</label>
+      <label><input type="radio" name="q1" value="b" /> 0.6999 BTC</label>
+      <label><input type="radio" name="q1" value="c" /> 0.3 BTC</label>
+      <label
+        ><input type="radio" name="q1" value="d" /> She doesn't get change — the
+        whole UTXO goes to Bob</label
+      >
+      <button onclick="checkQuiz('q1', 'b', 'quiz1-fb')">Submit</button>
+      <div class="feedback" id="quiz1-fb"></div>
+    </div>
+
+    <h2>Coinbase Transactions: The Exception</h2>
+
+    <p>
+      The coinbase transaction (first transaction in every block) breaks the
+      rules:
+    </p>
+    <ul>
+      <li>
+        It has <strong>exactly one input</strong> with a null outpoint (txid =
+        32 zero bytes, vout = <code>0xffffffff</code>).
+      </li>
+      <li>
+        The ScriptSig can contain arbitrary data (up to 100 bytes) — miners use
+        this for the extra nonce and to embed messages (like the famous "The
+        Times 03/Jan/2009 Chancellor on brink of second bailout for banks" in
+        the genesis block).
+      </li>
+      <li>
+        It creates new bitcoin: the block subsidy (currently 3.125 BTC after the
+        2024 halving) plus all fees from transactions in the block.
+      </li>
+      <li>
+        Coinbase outputs <strong>cannot be spent for 100 blocks</strong> (the
+        maturity requirement).
+      </li>
+    </ul>
+
+    <h2>Standard Transaction Types (Quick Reference)</h2>
+
+    <table class="field-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Locking Script Pattern</th>
+          <th>Used For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>P2PKH</strong></td>
+          <td>
+            <code
+              >OP_DUP OP_HASH160 &lt;hash&gt; OP_EQUALVERIFY OP_CHECKSIG</code
+            >
+          </td>
+          <td>
+            Standard payment to a Bitcoin address (legacy, starts with "1")
+          </td>
+        </tr>
+        <tr>
+          <td><strong>P2SH</strong></td>
+          <td><code>OP_HASH160 &lt;redeem-script-hash&gt; OP_EQUAL</code></td>
+          <td>
+            Payment to a script hash (multisig, SegWit-compatible addresses
+            starting with "3")
+          </td>
+        </tr>
+        <tr>
+          <td><strong>P2WPKH</strong></td>
+          <td><code>OP_0 &lt;witness-program&gt;</code> (20 bytes)</td>
+          <td>Native SegWit v0 (Bech32 addresses starting with "bc1q")</td>
+        </tr>
+        <tr>
+          <td><strong>P2TR</strong></td>
+          <td><code>OP_1 &lt;witness-program&gt;</code> (32 bytes)</td>
+          <td>Taproot (Bech32m addresses starting with "bc1p")</td>
+        </tr>
+        <tr>
+          <td><strong>Null Data</strong></td>
+          <td><code>OP_RETURN &lt;data&gt;</code></td>
+          <td>
+            Provably unspendable — embeds data on-chain without bloating the
+            UTXO set
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="quiz" id="quiz2">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        What makes the coinbase transaction structurally different from all
+        other transactions?
+      </p>
+      <label
+        ><input type="radio" name="q2" value="a" /> It has no outputs</label
+      >
+      <label
+        ><input type="radio" name="q2" value="b" /> It has exactly one input
+        with a null outpoint (all-zero txid)</label
+      >
+      <label
+        ><input type="radio" name="q2" value="c" /> It has no locktime
+        field</label
+      >
+      <label
+        ><input type="radio" name="q2" value="d" /> It uses a different version
+        number</label
+      >
+      <button onclick="checkQuiz('q2', 'b', 'quiz2-fb')">Submit</button>
+      <div class="feedback" id="quiz2-fb"></div>
+    </div>
+
+    <div class="quiz" id="quiz3">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        In the P2PKH script validation flow, what does OP_EQUALVERIFY check?
+      </p>
+      <label
+        ><input type="radio" name="q3" value="a" /> That the signature matches
+        the public key</label
+      >
+      <label
+        ><input type="radio" name="q3" value="b" /> That the hash of the
+        provided public key matches the pubkey hash in the locking script</label
+      >
+      <label
+        ><input type="radio" name="q3" value="c" /> That the input value equals
+        the output value</label
+      >
+      <label
+        ><input type="radio" name="q3" value="d" /> That the transaction fee is
+        sufficient</label
+      >
+      <button onclick="checkQuiz('q3', 'b', 'quiz3-fb')">Submit</button>
+      <div class="feedback" id="quiz3-fb"></div>
+    </div>
+
+    <h2>Key Takeaways</h2>
+
+    <ol>
+      <li>
+        <strong>Bitcoin has no accounts — only UTXOs.</strong> Your "balance" is
+        the sum of UTXOs you can unlock.
+      </li>
+      <li>
+        <strong
+          >A transaction consumes UTXOs (inputs) and creates new UTXOs
+          (outputs).</strong
+        >
+        UTXOs are indivisible — you always spend the full amount.
+      </li>
+      <li>
+        <strong>Every output has a locking script (ScriptPubKey).</strong> Every
+        input provides an unlocking script (ScriptSig) that must satisfy it.
+      </li>
+      <li>
+        <strong>Fee = inputs − outputs.</strong> There is no explicit fee field.
+        Change outputs send excess back to the spender.
+      </li>
+      <li>
+        <strong>The coinbase transaction is the sole exception</strong> — it
+        creates bitcoin from nothing and has no real input.
+      </li>
+      <li>
+        <strong>Addresses encode script conditions</strong> — "1..." = P2PKH,
+        "3..." = P2SH, "bc1q..." = SegWit v0, "bc1p..." = Taproot.
+      </li>
+    </ol>
+
+    <div class="callout">
+      <strong>🔗 Primary source for deeper reading:</strong>
+      <a href="https://developer.bitcoin.org/devguide/transactions.html"
+        >Bitcoin Developer Guide — Transactions</a
+      >
+      — the complete reference. Also: Chapters 5–7 of
+      <em>Mastering Bitcoin, 2nd Edition</em> (Antonopoulos) for the definitive
+      walkthrough of keys, addresses, transactions, and the UTXO model.
+    </div>
+
+    <div class="callout">
+      <strong>💬 Questions?</strong> Ask your agent-teacher: "walk me through
+      the P2SH spending flow," "explain the witness data in SegWit," or "why
+      can't I spend part of a UTXO?" Every question deepens the model.
+    </div>
+
+    <h2>Navigate</h2>
+    <div class="nav">
+      <a href="0001-transaction-lifecycle-overview.html"
+        >← Lesson 0001: Transaction Lifecycle Overview</a
+      >
+      <a href="0003-mining-deep-dive.html"
+        >Lesson 0003: Mining Deep Dive — Consensus, Nonces &amp; Security →</a
+      >
+    </div>
+
+    <script>
+      function checkQuiz(qName, correctValue, fbId) {
+        const selected = document.querySelector(
+          `input[name="${qName}"]:checked`,
+        );
+        const fb = document.getElementById(fbId);
+        if (!selected) {
+          fb.textContent = "Please select an answer first.";
+          fb.className = "feedback show incorrect";
+          return;
+        }
+        if (selected.value === correctValue) {
+          fb.textContent = "✅ Correct!";
+          fb.className = "feedback show correct";
+        } else {
+          fb.textContent =
+            "❌ Not quite. Review the section above and try again.";
+          fb.className = "feedback show incorrect";
+        }
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0001-transaction-lifecycle-overview.html" style="color:#f7931a;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0003-mining-deep-dive.html" style="color:#f7931a;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

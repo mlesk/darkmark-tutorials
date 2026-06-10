@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0008: Conditional Probability & Bayes</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --prob: #7c3aed;
+        --prob-light: #ede9fe;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--prob-light);
+        border-left: 3px solid var(--prob);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--prob);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--prob-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      .formula-spotlight {
+        text-align: center;
+        background: var(--prob-light);
+        border: 2px solid var(--prob);
+        padding: 1.2rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 1.05rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0008 — Conditional Probability & Bayes' Theorem</h1>
+    <p class="meta">Probability Pillar · ~25 minutes</p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> A language model computes P(next_token |
+      previous_tokens) — the probability of a token <strong>given</strong> the
+      context. This vertical bar "|" is conditional probability, and it's the
+      fundamental operation of every autoregressive model. The attention
+      mechanism itself computes something closely related: "given what I've seen
+      so far, which past tokens are most relevant?" This lesson teaches you the
+      mathematics of "given that."
+    </div>
+
+    <div class="hook">
+      "The probability that it will rain tomorrow" and "the probability that it
+      will rain tomorrow, given that it's cloudy today" are different questions.
+      The second is <strong>conditional</strong> — and it's almost always the
+      better question. AI models don't answer "what's the most common word?"
+      They answer "what's the most likely word
+      <em>given everything said so far</em>?"
+    </div>
+
+    <h2>Conditional Probability</h2>
+
+    <div class="formula-spotlight">P(A | B) = P(A ∩ B) / P(B)</div>
+
+    <p>
+      In words: the probability of A <strong>given</strong> B is the fraction of
+      B's probability mass that also satisfies A. You're zooming in on the part
+      of the sample space where B is true, and measuring A's share of that
+      subspace.
+    </p>
+
+    <p>
+      <strong>Example:</strong> P("on" | "The cat sat") vs. P("on" | "The cat
+      sat on the") — the second probability should be near-zero (you don't say
+      "on the on the mat"), even though "on" is a common word. The context
+      changes everything.
+    </p>
+
+    <h2>Bayes' Theorem</h2>
+
+    <div class="formula-spotlight">P(A | B) = P(B | A) · P(A) / P(B)</div>
+
+    <p>
+      Bayes' theorem tells you how to <strong>update your beliefs</strong> when
+      you observe evidence:
+    </p>
+    <ul>
+      <li>
+        <strong>P(A)</strong>: prior — what you believed before seeing evidence
+      </li>
+      <li>
+        <strong>P(B | A)</strong>: likelihood — how probable is the evidence if
+        A is true?
+      </li>
+      <li>
+        <strong>P(A | B)</strong>: posterior — what you should believe after
+        seeing evidence
+      </li>
+      <li><strong>P(B)</strong>: marginal likelihood — normalizing constant</li>
+    </ul>
+
+    <div class="insight">
+      <strong>Bayes' theorem is the mathematical engine of learning.</strong>
+      Start with prior beliefs → observe data → compute posterior (updated
+      beliefs). Repeat with new data. This iterative updating — prior → evidence
+      → posterior → (becomes new prior) → more evidence → … — is exactly how
+      both humans and AI systems learn from experience.
+    </div>
+
+    <h2>Autoregressive Decomposition: The Chain Rule</h2>
+
+    <p>
+      How does a language model compute P("The cat sat on the mat")? By breaking
+      it into conditional probabilities:
+    </p>
+
+    <p
+      style="
+        text-align: center;
+        font-family: &quot;SF Mono&quot;, &quot;Menlo&quot;, monospace;
+        font-size: 0.9rem;
+      "
+    >
+      P(w₁, w₂, ..., wₙ) = P(w₁) · P(w₂ | w₁) · P(w₃ | w₁,w₂) · ... · P(wₙ |
+      w₁,...,wₙ₋₁)
+    </p>
+
+    <p>
+      Each factor is exactly what the transformer computes at each step: the
+      probability of the next token <em>given all previous tokens</em>. The
+      joint probability of the entire sequence is the product of these
+      conditional probabilities. This is the
+      <strong>chain rule of probability</strong>, and it's why autoregressive
+      generation works.
+    </p>
+
+    <div class="insight">
+      <strong>Generation is just repeated conditional probability.</strong> Step
+      1: P(token₁). Step 2: P(token₂ | token₁). Step 3: P(token₃ | token₁,
+      token₂). The transformer's entire job, at every position, is to compute
+      one conditional probability distribution. Then you sample from it, append
+      the result, and repeat.
+    </div>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>Q1: P(A | B) = 0.8 and P(A) = 0.3. What does this tell you?</p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. A and B are independent</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. B makes A much more likely — B is strong evidence for A</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)">C. A causes B</span>
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. The numbers are inconsistent — P(A|B) can't exceed P(A)</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: A transformer computes P("mat" | "The cat sat on the"). Which
+          mathematical concept does this directly use?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. Matrix multiplication</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. Conditional probability</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. Eigenvalue decomposition</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. Gradient descent</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: Why does autoregressive generation use the chain rule P(w₁,...,wₙ)
+          = ∏ P(wᵢ | w₁,...,wᵢ₋₁) instead of trying to compute the joint
+          probability directly?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. The chain rule is faster to type</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. Direct joint probability over all possible sequences of length n
+          would require |V|ⁿ entries — impossibly large. The chain rule reduces
+          it to n conditional distributions over |V| tokens each</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. The chain rule gives more accurate results</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. It's a legal requirement for AI systems</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a href="https://www.youtube.com/watch?v=HZGCoVF3YvM"
+        >Bayes theorem — 3Blue1Brown</a
+      >
+      (15 min, the single best explanation of Bayes ever made)
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Blitzstein & Hwang, <em>Introduction to Probability</em> — Chapter 2
+      (Conditional Probability)
+    </div>
+
+    <div class="teacher-note">
+      Conditional probability is the "|" in P(token | context). If you
+      internalize nothing else from probability, internalize this: the vertical
+      bar means "zooming in on the world where the right side is true."
+      Everything in AI is conditional on something.
+    </div>
+
+    <div class="prev-next">
+      <a href="0007-probability-fundamentals.html"
+        >← 0007: Probability Fundamentals</a
+      >
+      <a href="0009-random-variables-distributions.html"
+        >Next: 0009 — Random Variables & Distributions →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Without B, A has a 30% chance. Given B, A jumps to 80%. B is strong positive evidence for A. This is exactly how evidence updates beliefs in Bayesian reasoning.",
+              1: "If independent, P(A|B) = P(A) = 0.3. Here they differ, so they're dependent.",
+              3: "Conditional probability doesn't imply causation. P(A|B) > P(A) just means they're correlated.",
+              4: "P(A|B) can be higher, lower, or equal to P(A). Here B provides evidence that increases A's probability.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! The transformer's output at each position is literally P(next_token | context_so_far) — a conditional probability distribution. The entire model is a machine for computing conditional probabilities.",
+              1: "Matrix multiplication is the computational mechanism, but what's being computed is a conditional probability.",
+              3: "Eigenvalues describe matrix structure, not the output semantics.",
+              4: "Gradient descent is used during training, not during inference when computing P(token|context).",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! If vocabulary size |V|=50,000 and sequence length n=20, the joint distribution would need 50,000²⁰ entries — more than atoms in the universe. The chain rule decomposes this into 20 conditional distributions of 50,000 entries each — totally manageable. This is the same trick that makes n-gram models, RNNs, and transformers computationally feasible.",
+              1: "The chain rule is a mathematical identity, not a typing shortcut.",
+              3: "The chain rule is exact (it's a theorem, not an approximation). Both approaches would give the same result — but direct computation is impossible.",
+              4: "There's no legal requirement.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0007-probability-fundamentals.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0009-random-variables-distributions.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>

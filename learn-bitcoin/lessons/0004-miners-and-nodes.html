@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson 0004 — Miners, Nodes &amp; the Block Race</title>
+    <style>
+      :root {
+        --bg: #fffef9;
+        --text: #1a1a1a;
+        --muted: #5e5e5e;
+        --accent: #f7931a;
+        --accent-dark: #d97c0d;
+        --border: #e0dcd0;
+        --card-bg: #faf8f3;
+        --code-bg: #f4f1ea;
+        --highlight: #fff3e0;
+        --green-bg: #e8f5e9;
+        --green-border: #81c784;
+        --red-bg: #fff5f5;
+        --red-border: #ef9a9a;
+        --blue-bg: #e3f2fd;
+        --blue-border: #90caf9;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text);
+      }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 2.5rem 0 0.75rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 2px solid var(--accent);
+        color: var(--text);
+      }
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 1.75rem 0 0.5rem;
+        color: var(--text);
+      }
+      p {
+        margin: 0.75rem 0;
+      }
+      .lesson-meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .lesson-meta span {
+        margin-right: 1.25rem;
+      }
+      .callout {
+        background: var(--highlight);
+        border: 1px solid var(--accent);
+        border-left: 4px solid var(--accent);
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        font-size: 0.93rem;
+      }
+      .callout strong {
+        color: var(--accent-dark);
+      }
+      .green-callout {
+        background: var(--green-bg);
+        border: 1px solid var(--green-border);
+        border-left: 4px solid #4caf50;
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        font-size: 0.93rem;
+      }
+      .red-callout {
+        background: var(--red-bg);
+        border: 1px solid var(--red-border);
+        border-left: 4px solid #e53935;
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        font-size: 0.93rem;
+      }
+      .blue-callout {
+        background: var(--blue-bg);
+        border: 1px solid var(--blue-border);
+        border-left: 4px solid #1e88e5;
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem 1rem;
+        margin: 1.25rem 0;
+        font-size: 0.93rem;
+      }
+      .highlight-box {
+        border: 2px solid var(--accent);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.25rem 0;
+        background: var(--highlight);
+      }
+      .diagram {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.25rem 0;
+        overflow-x: auto;
+      }
+      .diagram pre {
+        background: transparent;
+        color: var(--text);
+        padding: 0;
+        margin: 0;
+        font-size: 0.82em;
+        line-height: 1.6;
+      }
+      .fork-diagram {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin: 1.25rem 0;
+        overflow-x: auto;
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 0.82em;
+        line-height: 1.5;
+      }
+      .fork-diagram .chain-a {
+        color: #1565c0;
+      }
+      .fork-diagram .chain-b {
+        color: #c62828;
+      }
+      .fork-diagram .winner {
+        font-weight: 700;
+      }
+      .fork-diagram .stale {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .step-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+      }
+      .step-num {
+        background: var(--accent);
+        color: white;
+        border-radius: 50%;
+        width: 1.5rem;
+        height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+      }
+      .flow-line {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.75rem 0;
+        flex-wrap: wrap;
+      }
+      .flow-node {
+        border: 1.5px solid var(--border);
+        border-radius: 6px;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.82rem;
+        background: white;
+        white-space: nowrap;
+      }
+      .flow-arrow {
+        color: var(--accent);
+        font-weight: bold;
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .two-col .col {
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        background: white;
+      }
+      .two-col .col h4 {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+      }
+      .two-col .col.miner {
+        border-color: var(--accent);
+        background: var(--highlight);
+      }
+      .two-col .col.node {
+        border-color: #1e88e5;
+        background: var(--blue-bg);
+      }
+      .timeline {
+        position: relative;
+        padding-left: 1.5rem;
+        margin: 1.25rem 0;
+        border-left: 2px solid var(--accent);
+      }
+      .timeline-event {
+        position: relative;
+        margin-bottom: 0.9rem;
+        font-size: 0.9rem;
+      }
+      .timeline-event::before {
+        content: "";
+        position: absolute;
+        left: -1.65rem;
+        top: 0.4rem;
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .timeline-event .time {
+        font-weight: 700;
+        color: var(--accent-dark);
+        font-size: 0.82rem;
+      }
+      ul,
+      ol {
+        margin: 0.5rem 0 0.5rem 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      code {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      pre {
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.82em;
+        background: #2d2d2d;
+        color: #e8e8e8;
+        padding: 1rem 1.2rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        line-height: 1.5;
+        margin: 1rem 0;
+      }
+      cite {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.3rem;
+      }
+      cite a {
+        color: var(--muted);
+      }
+      .quiz {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin: 1.5rem 0;
+      }
+      .quiz h4 {
+        margin-bottom: 0.6rem;
+      }
+      .quiz label {
+        display: block;
+        margin: 0.35rem 0;
+        cursor: pointer;
+        font-size: 0.93rem;
+      }
+      .quiz input[type="radio"] {
+        margin-right: 0.5rem;
+      }
+      .quiz button {
+        margin-top: 0.6rem;
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .quiz button:hover {
+        background: var(--accent-dark);
+      }
+      .quiz .feedback {
+        margin-top: 0.6rem;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        display: none;
+      }
+      .quiz .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .feedback.incorrect {
+        background: #fce4ec;
+        color: #c62828;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      .nav a {
+        color: var(--accent-dark);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .nav a:hover {
+        text-decoration: underline;
+      }
+      @media (max-width: 600px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+        body {
+          padding: 1.5rem 1rem;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lesson 0004: Miners, Nodes &amp; the Block Race</h1>
+    <div class="lesson-meta">
+      <span>⏱ ~20 minutes</span>
+      <span>📅 2026-06-10</span>
+      <span>🎯 Supplementary • Block Propagation</span>
+    </div>
+
+    <div class="callout">
+      <strong>Goal:</strong> Understand exactly what happens the moment a miner
+      finds a valid block — how it's validated, how it propagates, what happens
+      when two miners find blocks simultaneously (stale blocks), and the
+      fundamental relationship between miners (who <em>propose</em> blocks) and
+      full nodes (who <em>enforce the rules</em>).
+    </div>
+
+    <h2>
+      Part 1: The Moment of Discovery — What Happens When a Block Is Solved
+    </h2>
+
+    <p>
+      After trillions of nonce attempts, an ASIC finds a double-SHA-256 hash
+      below the difficulty target. The block is valid. Now what?
+    </p>
+
+    <h3>The Winning Miner's Immediate Actions</h3>
+
+    <ol>
+      <li>
+        <strong>The ASIC signals the mining node:</strong> "I found it — here's
+        the nonce." The mining software (<code>bitcoind</code> or the pool
+        server) assembles the full block: the 80-byte header (with the winning
+        nonce) plus the complete transaction list (which the header's Merkle
+        root already commits to).
+      </li>
+      <li>
+        <strong>The miner broadcasts the block:</strong> The mining node sends a
+        <code>block</code> message to every connected peer. This is a push — no
+        <code>inv</code>/<code>getdata</code> round-trip needed. Speed matters:
+        every millisecond of delay increases the chance another miner finds a
+        competing block at the same height.
+      </li>
+      <li>
+        <strong>The miner immediately starts on the next block:</strong> Even
+        before validation propagates, the miner builds a new block template on
+        top of the one they just found and starts hashing. They want to extend
+        their own chain before anyone else can.
+      </li>
+    </ol>
+
+    <div class="blue-callout">
+      <strong>⏱️ The race is measured in milliseconds.</strong> Block
+      propagation speed is a genuine competitive advantage. A miner with slow
+      peers or poor network topology loses more blocks to stale-block races.
+      This is why miners invest in low-latency fibre connections and the
+      <strong>Fast Internet Bitcoin Relay Engine (FIBRE)</strong> network — a
+      UDP-based relay that shaves hundreds of milliseconds off block delivery.
+    </div>
+
+    <h3>What Every Receiving Full Node Does: The Validation Checklist</h3>
+
+    <p>
+      When a full node receives a <code>block</code> message, it runs a
+      comprehensive validation gauntlet. Here's the checklist, in order:
+    </p>
+
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div>
+        <strong>Check the block header's PoW.</strong> Double-SHA-256 the
+        header. Is the hash below the current difficulty target? If not, reject
+        immediately — no further checks needed. This is cheap to verify.
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <div>
+        <strong>Check the previous block hash.</strong> Does it point to a block
+        the node already knows about and considers part of the valid chain with
+        the most work? If it points to an unknown block, the node may hold it in
+        an "orphan block" buffer and request the missing parent.
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">3</div>
+      <div>
+        <strong>Check the timestamp.</strong> Is it greater than the median of
+        the last 11 blocks, and no more than 2 hours in the future? This
+        prevents miners from manipulating the difficulty adjustment.
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">4</div>
+      <div>
+        <strong>Check the Merkle root.</strong> Recompute it from the
+        transaction list. Must match the root in the header exactly. If not, the
+        block is structurally corrupt.
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">5</div>
+      <div>
+        <strong>Check the block size/weight.</strong> Must not exceed 4 million
+        weight units. The coinbase transaction's size is also checked (must be
+        within 100 bytes for the arbitrary data portion).
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">6</div>
+      <div>
+        <strong>Validate every transaction.</strong> This is the expensive part.
+        For each transaction: verify all input signatures (or witness data),
+        confirm referenced UTXOs exist and haven't been spent, check that input
+        values ≥ output values, verify locktime constraints, ensure scripts
+        execute successfully. The coinbase gets special treatment: no real
+        inputs, output value ≤ subsidy + fees.
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">7</div>
+      <div>
+        <strong>Check the coinbase maturity.</strong> Ensure the coinbase is
+        paying the correct subsidy (3.125 BTC, valid until the next halving).
+        Total fees = Σ(inputs) − Σ(outputs) for all non-coinbase transactions.
+        Coinbase output ≤ subsidy + total fees.
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">8</div>
+      <div>
+        <strong>Update state.</strong> If all checks pass: append the block to
+        the chain tip, update the UTXO set (remove spent outputs, add new ones),
+        remove confirmed transactions from the mempool, and
+        <strong>relay the block to all peers</strong>.
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>🔑 Key insight:</strong> Steps 1–5 are fast (header-only or
+      structural checks). Step 6 (transaction validation) is the bottleneck —
+      signature verification is CPU-intensive. Modern <code>bitcoind</code>
+      uses libsecp256k1 with optimised assembly and parallel signature
+      verification to minimise this.
+    </div>
+
+    <cite
+      >Source:
+      <a
+        href="https://developer.bitcoin.org/devguide/p2p_network.html#block-broadcasting"
+        >Bitcoin Developer Guide — Block Broadcasting</a
+      >;
+      <a href="https://en.bitcoin.it/wiki/Protocol_rules#.22block.22_messages"
+        >Bitcoin Wiki — Block Validation Rules</a
+      ></cite
+    >
+
+    <div class="quiz" id="quiz1">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        A full node receives a new block. The header's PoW checks out, the
+        previous block hash is correct, the Merkle root matches — but one
+        transaction has an invalid signature. What happens?
+      </p>
+      <label
+        ><input type="radio" name="q1" value="a" /> The node accepts the block
+        but ignores the bad transaction</label
+      >
+      <label
+        ><input type="radio" name="q1" value="b" /> The entire block is rejected
+        — every transaction must be valid</label
+      >
+      <label
+        ><input type="radio" name="q1" value="c" /> The node quarantines the
+        block and asks the miner to fix it</label
+      >
+      <label
+        ><input type="radio" name="q1" value="d" /> The node accepts it because
+        the header proves enough work was done</label
+      >
+      <button onclick="checkQuiz('q1', 'b', 'quiz1-fb')">Submit</button>
+      <div class="feedback" id="quiz1-fb"></div>
+    </div>
+
+    <h2>Part 2: Two Miners, One Block Height — The Stale Block Race</h2>
+
+    <p>
+      Bitcoin blocks are found roughly every 10 minutes on average, but the
+      timing is random (a Poisson process). Sometimes two miners find valid
+      blocks within seconds — or even milliseconds — of each other.
+    </p>
+
+    <h3>What Actually Happens</h3>
+
+    <div class="fork-diagram">
+      <pre>
+Block 800,000 —————— Block 800,001 (Miner A finds it first, in Texas)
+         \
+          —— Block 800,001 (Miner B finds it ~3 seconds later, in Kazakhstan)
+</pre
+      >
+    </div>
+
+    <p>
+      Both blocks are <strong>fully valid</strong>. Both pay the correct
+      subsidy. Both contain valid transactions. But they are at the
+      <strong>same height</strong> — they both point to block 800,000 as their
+      parent. Only one can survive.
+    </p>
+
+    <h3>The Timeline of a Chain Split</h3>
+
+    <div class="timeline">
+      <div class="timeline-event">
+        <div class="time">T+0s</div>
+        <div>
+          Miner A finds block at height 800,001. Broadcasts it. Nodes in the
+          Americas and Europe see it first due to network topology.
+        </div>
+      </div>
+      <div class="timeline-event">
+        <div class="time">T+3s</div>
+        <div>
+          Miner B finds their own block at height 800,001. Broadcasts it. Nodes
+          in Asia see it first. Miner B hadn't yet received A's block — the
+          signal was still propagating.
+        </div>
+      </div>
+      <div class="timeline-event">
+        <div class="time">T+5s</div>
+        <div>
+          <strong>The network is now split.</strong> Some nodes have A's block
+          at their tip. Others have B's block. Both groups consider their tip
+          valid. Each group's miners start building on whichever block they saw
+          first.
+        </div>
+      </div>
+      <div class="timeline-event">
+        <div class="time">T+8s</div>
+        <div>
+          Nodes that had A's block now receive B's block (and vice versa). Each
+          node now has <em>both</em> competing blocks. The node keeps both in
+          memory but designates the one it received first as its active chain
+          tip.
+        </div>
+      </div>
+      <div class="timeline-event">
+        <div class="time">T+~10 min</div>
+        <div>
+          <strong>The tie is broken.</strong> A miner (any miner) finds block
+          800,002 — and it builds on <em>one</em> of the two competing tips.
+          Whichever chain gets block 800,002 first becomes the longest (has more
+          accumulated PoW). The other chain's block becomes
+          <strong>stale</strong>.
+        </div>
+      </div>
+      <div class="timeline-event">
+        <div class="time">T+~10 min+Δ</div>
+        <div>
+          <strong>Reorganisation.</strong> Nodes that were following the losing
+          chain reorganise: they undo the stale block, restore its transactions
+          to their mempool, and apply the winning chain's blocks. Everyone now
+          agrees on a single chain.
+        </div>
+      </div>
+    </div>
+
+    <div class="green-callout">
+      <strong>✅ Good news for users:</strong> Transactions that were only in
+      the stale block return to mempools and get included in a future block —
+      usually the very next one. No coins are lost. A 1-block reorg is a normal,
+      expected event that happens roughly once every few weeks.
+    </div>
+
+    <div class="red-callout">
+      <strong>⚠️ Bad news for Miner B:</strong> They spent enormous electricity
+      finding a valid block and earned <strong>nothing</strong>. Their block
+      subsidy (3.125 BTC) is on the stale chain and will never be spendable
+      (coinbase outputs require 100 confirmations on the <em>winning</em>
+      chain). This is the economic cost of slow propagation.
+    </div>
+
+    <h3>Why Don't Miners Just Keep Mining on Their Own Block?</h3>
+
+    <p>
+      A miner who stubbornly continues mining on the stale tip (the one that
+      <em>didn't</em> get the next block) is racing against the entire honest
+      network. The winning chain already has a 1-block lead and the combined
+      hashrate of everyone else building on it. For the stubborn miner to
+      overtake, they would need to find <em>two</em> blocks faster than the rest
+      of the network finds <em>one</em>. Unless they control >50% of hashrate,
+      this is a losing bet.
+    </p>
+
+    <p>
+      <strong>Rational miners immediately switch.</strong> The moment a node
+      receives a valid block at the current height (or higher), it builds a new
+      block template on top of it — even if it was previously mining on a
+      different tip. The incentive is to be the one who finds block 800,002, not
+      to defend a block that's already losing.
+    </p>
+
+    <div class="callout">
+      <strong>🔑 The network doesn't "vote" on the correct chain.</strong> It
+      converges through pure economic rationality. Every miner wants their block
+      to be part of the longest chain. Mining on a losing tip is throwing money
+      away. The convergence is automatic and requires no coordination.
+    </div>
+
+    <div class="quiz" id="quiz2">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        Miner B's block becomes stale (orphaned). What happens to the
+        transactions that were only in Miner B's block?
+      </p>
+      <label
+        ><input type="radio" name="q2" value="a" /> They are permanently
+        lost</label
+      >
+      <label
+        ><input type="radio" name="q2" value="b" /> They return to mempools and
+        can be included in a future block</label
+      >
+      <label
+        ><input type="radio" name="q2" value="c" /> Miner B must re-broadcast
+        them manually</label
+      >
+      <label
+        ><input type="radio" name="q2" value="d" /> They become part of Miner
+        B's next block automatically</label
+      >
+      <button onclick="checkQuiz('q2', 'b', 'quiz2-fb')">Submit</button>
+      <div class="feedback" id="quiz2-fb"></div>
+    </div>
+
+    <h2>Part 3: The Miners-and-Nodes Relationship</h2>
+
+    <p>
+      This is one of the most misunderstood dynamics in Bitcoin. Let's clarify
+      exactly who does what.
+    </p>
+
+    <div class="two-col">
+      <div class="col miner">
+        <h4>⛏️ Miners</h4>
+        <ul>
+          <li>
+            <strong>Propose</strong> blocks — they assemble candidate blocks and
+            expend energy to find valid PoW
+          </li>
+          <li>
+            Run <em>sometimes</em> a full node (solo miners do; pool miners
+            don't)
+          </li>
+          <li>Earn block subsidies and fees</li>
+          <li>Select which transactions to include</li>
+          <li>
+            Determine the <em>ordering</em> of transactions within a block
+          </li>
+          <li>
+            <strong>Cannot</strong> change consensus rules — an invalid block is
+            rejected by every node regardless of how much hashrate produced it
+          </li>
+        </ul>
+      </div>
+      <div class="col node">
+        <h4>🖥️ Full Nodes</h4>
+        <ul>
+          <li>
+            <strong>Enforce</strong> the rules — every block and transaction is
+            independently validated
+          </li>
+          <li>Maintain a full copy of the UTXO set</li>
+          <li>Relay transactions and blocks to peers</li>
+          <li>
+            <strong>Define</strong> what "Bitcoin" is — if miners produce a
+            block that breaks the rules nodes run, it's not Bitcoin
+          </li>
+          <li>
+            Earn nothing directly (run voluntarily by users, businesses,
+            enthusiasts)
+          </li>
+          <li>
+            <strong>Are the ultimate authority.</strong> Miners serve nodes, not
+            the other way around.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>The Power Dynamic: Nodes Rule, Miners Serve</h3>
+
+    <p>
+      It's tempting to think miners "run" Bitcoin because they produce blocks
+      and earn rewards. This gets the power relationship backwards:
+    </p>
+
+    <div class="highlight-box">
+      <p>
+        <strong>Miners propose blocks. Nodes accept or reject them.</strong> A
+        block that violates any consensus rule — excess subsidy, invalid
+        signature, double-spend — is rejected by every full node on the network.
+        The miner who produced it wasted all their electricity. They earned
+        nothing.
+      </p>
+      <p>
+        <strong
+          >If 100% of miners colluded to change a rule, and 0% of nodes accepted
+          it, the miners would be mining a worthless fork.</strong
+        >
+        The economic value of bitcoin exists because users (running nodes)
+        accept it as payment. Miners convert electricity into bitcoin — but only
+        if the bitcoin they produce is accepted by the node network.
+      </p>
+    </div>
+
+    <h3>Why Run a Full Node If You're Not Mining?</h3>
+
+    <p>
+      This is a common question. Full nodes earn no block rewards. They cost
+      money to run (disk space, bandwidth, electricity). Why does anyone bother?
+    </p>
+
+    <ol>
+      <li>
+        <strong>Self-sovereign verification:</strong> If you run your own node,
+        you don't need to trust anyone. You validate every transaction
+        independently. Exchanges, payment processors, and large holders run
+        nodes to protect their assets.
+      </li>
+      <li>
+        <strong>Privacy:</strong> Light wallets that query third-party servers
+        leak which addresses belong to you. A full node lets you query your own
+        blockchain — nobody learns your balance or transaction history.
+      </li>
+      <li>
+        <strong>Network health:</strong> Every full node is a relay point that
+        helps transactions and blocks propagate. More nodes = more resilient
+        network. Running a node is a public good.
+      </li>
+      <li>
+        <strong>Economic weight:</strong> If a contentious protocol change were
+        proposed, the side that economic nodes (exchanges, custodians, payment
+        processors) choose is the side that retains value. Miners follow the
+        economic majority — they mine where the fees are.
+      </li>
+    </ol>
+
+    <div class="blue-callout">
+      <strong>📊 The network today:</strong> Approximately
+      <strong>50,000–80,000</strong> reachable full nodes run globally (and many
+      more behind NAT/firewalls). Compare this to a few dozen significant mining
+      pools. Nodes outnumber miners roughly 1,000:1. This is the distribution
+      that protects Bitcoin.
+    </div>
+
+    <cite
+      >Source:
+      <a href="https://bitcoin.org/en/full-node"
+        >Bitcoin.org — Running a Full Node</a
+      >;
+      <a href="https://developer.bitcoin.org/devguide/p2p_network.html"
+        >Bitcoin Developer Guide — P2P Network</a
+      >;
+      <a href="https://bitcoin.org/bitcoin.pdf"
+        >Satoshi Nakamoto — Bitcoin Whitepaper, §5 (Network)</a
+      ></cite
+    >
+
+    <h2>The Full Picture: How It All Fits Together</h2>
+
+    <p>
+      Let's trace the entire loop — from block discovery through propagation
+      through miner response — in one sequence:
+    </p>
+
+    <div class="diagram">
+      <pre>
+  1. Miner A finds valid nonce
+         │
+  2. Miner A broadcasts BLOCK to peers
+         │
+  3. Peers validate (8-step checklist)
+         │
+  4. Peers relay BLOCK to their peers  ←── Network floods the block
+         │
+  5. Miner B receives BLOCK
+         │
+  6. Miner B validates, accepts it as new tip
+         │
+  7. Miner B abandons current work, builds new template on BLOCK
+         │
+  8. Miner B starts hashing for block N+1
+         │
+  9. ~10 min later, someone finds block N+1 → repeat from step 1
+      </pre>
+    </div>
+
+    <div class="callout">
+      <strong>🔗 This is the heartbeat of Bitcoin.</strong> Every ~10 minutes,
+      this cycle repeats. A block is found, it floods the network in seconds,
+      every miner resets, and the race begins again. The system has been running
+      this loop continuously since January 2009 — over 880,000 times.
+    </div>
+
+    <h2>Common Misconceptions</h2>
+
+    <div class="red-callout">
+      <strong>❌ "Miners control Bitcoin because they produce blocks."</strong
+      ><br />
+      <strong>✅ Nodes control Bitcoin.</strong> Miners propose; nodes dispose.
+      If every miner switched to invalid software tomorrow, nodes would reject
+      every block and the network would halt until honest miners returned.
+    </div>
+
+    <div class="red-callout">
+      <strong
+        >❌ "There's a central server that tells miners which block to work
+        on."</strong
+      ><br />
+      <strong>✅ There is no coordinator.</strong> Each miner independently
+      builds a template and starts hashing. The convergence is emergent and
+      economic — no one gives orders.
+    </div>
+
+    <div class="red-callout">
+      <strong>❌ "Stale blocks mean transactions are double-spent."</strong
+      ><br />
+      <strong>✅ Transactions in stale blocks return to the mempool.</strong>
+      They are mined again, typically in the very next block. No funds are lost.
+      A stale block is just a valid block that lost a race.
+    </div>
+
+    <div class="quiz" id="quiz3">
+      <h4>🧠 Quick Check</h4>
+      <p>
+        If 100% of miners colluded to increase the block subsidy from 3.125 BTC
+        to 6.25 BTC (breaking the 21M supply cap), what would happen?
+      </p>
+      <label
+        ><input type="radio" name="q3" value="a" /> The change would take effect
+        — miners control the protocol</label
+      >
+      <label
+        ><input type="radio" name="q3" value="b" /> Full nodes would reject
+        every block with the inflated subsidy, and the miners would be mining a
+        worthless fork</label
+      >
+      <label
+        ><input type="radio" name="q3" value="c" /> The network would split
+        50/50</label
+      >
+      <label
+        ><input type="radio" name="q3" value="d" /> It depends on what exchanges
+        decide</label
+      >
+      <button onclick="checkQuiz('q3', 'b', 'quiz3-fb')">Submit</button>
+      <div class="feedback" id="quiz3-fb"></div>
+    </div>
+
+    <h2>Key Takeaways</h2>
+
+    <ol>
+      <li>
+        <strong>Block validation is a gauntlet.</strong> Full nodes run an
+        8-step checklist on every block — header PoW, previous hash, timestamp,
+        Merkle root, size/weight, every transaction's signatures and scripts,
+        coinbase subsidy, and UTXO set consistency. Any failure rejects the
+        entire block.
+      </li>
+      <li>
+        <strong>Stale blocks are normal.</strong> When two miners find blocks at
+        nearly the same time, the network temporarily splits. The next block
+        breaks the tie — the chain with more accumulated PoW wins, the other is
+        discarded. Transactions in stale blocks return to the mempool.
+      </li>
+      <li>
+        <strong>Miners switch instantly.</strong> The moment a miner receives a
+        valid new block, they abandon current work and start mining on top of
+        it. Mining on a losing chain is throwing money away — the rest of the
+        network is advancing the winning chain.
+      </li>
+      <li>
+        <strong>Nodes are the sovereigns; miners are the servants.</strong>
+        Miners expend energy to <em>propose</em> blocks. Nodes independently
+        <em>enforce</em> the rules. If miners produce invalid blocks, nodes
+        reject them regardless of hashrate. Economic value follows the node
+        network, not the miners.
+      </li>
+      <li>
+        <strong>The cycle is self-sustaining.</strong> Block found → flood the
+        network → validate → relay → miners reset → repeat. No coordinator, no
+        downtime, no single point of failure. Over 880,000 times and counting.
+      </li>
+    </ol>
+
+    <div class="callout">
+      <strong>🔗 Primary source for deeper reading:</strong>
+      <a href="https://developer.bitcoin.org/devguide/p2p_network.html"
+        >Bitcoin Developer Guide — P2P Network</a
+      >
+      — the canonical reference for block propagation, validation, and the
+      peer-to-peer protocol. For the node-miner power dynamic, read
+      <a href="https://bitcoin.org/en/full-node">Bitcoin.org — Full Node</a>
+      and
+      <a href="https://en.bitcoin.it/wiki/Full_node">Bitcoin Wiki — Full Node</a
+      >. Also: Chapters 8–10 of
+      <em>Mastering Bitcoin, 2nd Edition</em> (Antonopoulos) for the complete
+      network and mining deep-dive.
+    </div>
+
+    <div class="callout">
+      <strong>💬 Questions?</strong> Ask your agent-teacher: "walk me through a
+      real historical chain split," "explain compact block relay in depth," "how
+      does FIBRE work," or "what's the difference between a full node and a
+      light client?" Every question deepens the model.
+    </div>
+
+    <h2>Navigate</h2>
+    <div class="nav">
+      <a href="0003-mining-deep-dive.html"
+        >← Lesson 0003: Mining Deep Dive — Consensus, Nonces &amp; Security</a
+      >
+      <span>Lesson 0005 →</span>
+    </div>
+
+    <script>
+      function checkQuiz(qName, correctValue, fbId) {
+        const selected = document.querySelector(
+          `input[name="${qName}"]:checked`,
+        );
+        const fb = document.getElementById(fbId);
+        if (!selected) {
+          fb.textContent = "Please select an answer first.";
+          fb.className = "feedback show incorrect";
+          return;
+        }
+        if (selected.value === correctValue) {
+          fb.textContent = "✅ Correct!";
+          fb.className = "feedback show correct";
+        } else {
+          fb.textContent =
+            "❌ Not quite. Review the section above and try again.";
+          fb.className = "feedback show incorrect";
+        }
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0003-mining-deep-dive.html" style="color:#f7931a;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <span style="color:#ccc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</span>
+  </nav>
+
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>0011: KL Divergence</title>
+    <style>
+      :root {
+        --bg: #faf9f7;
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --prob: #7c3aed;
+        --prob-light: #ede9fe;
+        --accent: #2563eb;
+        --accent-light: #dbeafe;
+        --border: #e5e0d8;
+        --success: #059669;
+        --success-bg: #d1fae5;
+        --radius: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Charter", "Georgia", "Times New Roman", serif;
+        font-size: 18px;
+        line-height: 1.7;
+        color: var(--text);
+        background: var(--bg);
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.8rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 1.8rem 0 0.5rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0.8rem 0;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .puzzle {
+        background: var(--prob-light);
+        border-left: 3px solid var(--prob);
+        padding: 0.8rem 1.2rem;
+        margin: 1rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-size: 0.9rem;
+      }
+      .puzzle strong {
+        color: var(--prob);
+      }
+      .hook {
+        background: var(--accent-light);
+        border-left: 4px solid var(--accent);
+        padding: 1.2rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        font-style: italic;
+      }
+      .insight {
+        background: #fef9e7;
+        border: 1px solid #f0e2b0;
+        padding: 1rem 1.3rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+      }
+      .insight::before {
+        content: "💡 ";
+      }
+      .source-box {
+        background: #f3f4f6;
+        padding: 1rem 1.3rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+      }
+      .source-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 0.15em 0.4em;
+        border-radius: 3px;
+        font-family: "SF Mono", "Menlo", "Monaco", monospace;
+        font-size: 0.88em;
+      }
+      .quiz {
+        margin: 2rem 0;
+      }
+      .quiz-question {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.3rem 1.5rem;
+        margin: 1rem 0;
+      }
+      .quiz-question p {
+        margin: 0 0 0.8rem;
+        font-weight: 600;
+      }
+      .quiz-option {
+        display: block;
+        padding: 0.6rem 0.8rem;
+        margin: 0.3rem 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .quiz-option:hover {
+        background: var(--prob-light);
+      }
+      .quiz-option.correct {
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+      .quiz-option.wrong {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+      .feedback {
+        margin-top: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        display: none;
+      }
+      .feedback.show {
+        display: block;
+      }
+      .feedback.correct {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .feedback.wrong {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .prev-next {
+        display: flex;
+        justify-content: space-between;
+        margin: 3rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .prev-next a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .prev-next a:hover {
+        text-decoration: underline;
+      }
+      .teacher-note {
+        background: #f9f5ff;
+        border: 1px solid #e0d5f0;
+        padding: 0.8rem 1.2rem;
+        margin: 2rem 0;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #6b21a8;
+      }
+      .teacher-note::before {
+        content: "🧑‍🏫 Ask your AI teacher: ";
+        font-weight: 700;
+      }
+      .formula-spotlight {
+        text-align: center;
+        background: var(--prob-light);
+        border: 2px solid var(--prob);
+        padding: 1.2rem;
+        margin: 1.5rem 0;
+        border-radius: var(--radius);
+        font-family: "SF Mono", "Menlo", monospace;
+        font-size: 1.05rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>0011 — KL Divergence: Distance Between Distributions</h1>
+    <p class="meta">
+      Probability Pillar · ~20 minutes · Final probability lesson
+    </p>
+
+    <div class="puzzle">
+      <strong>🧩 Puzzle Piece:</strong> Training a language model means making
+      its output distribution Q match the true data distribution P as closely as
+      possible. KL divergence measures exactly this gap: how much information is
+      lost when you use Q instead of P. Minimizing cross-entropy is equivalent
+      to minimizing KL divergence — they differ only by the entropy of the data,
+      which is constant. This is why "training = minimizing KL divergence."
+    </div>
+
+    <div class="hook">
+      Two probability distributions over the same set of outcomes — how
+      different are they? Not just "are they the same peak?" but "how much
+      information would I lose if I used one instead of the other?"
+      <strong>KL divergence</strong> answers this — and it's the theoretical
+      foundation of AI training.
+    </div>
+
+    <h2>Definition</h2>
+
+    <div class="formula-spotlight">
+      KL(P ‖ Q) = Σ P(x) · log(P(x) / Q(x)) = E<sub>P</sub>[log(P/Q)]
+    </div>
+
+    <p>
+      KL divergence measures the <strong>expected log ratio</strong> of P to Q,
+      where the expectation is taken under P (the true distribution).
+      Intuitively: for each outcome x, compute how much more probable P thinks x
+      is than Q thinks x is, in log space, then average over P.
+    </p>
+
+    <h2>Key Properties</h2>
+
+    <ol>
+      <li>
+        <strong>KL(P ‖ Q) ≥ 0</strong> — always non-negative. Zero if and only
+        if P = Q everywhere.
+      </li>
+      <li>
+        <strong>KL(P ‖ Q) ≠ KL(Q ‖ P)</strong> — it's asymmetric! This is
+        critical. Using Q to approximate P is not the same as using P to
+        approximate Q.
+      </li>
+      <li>
+        <strong>Not a true distance metric</strong> — because of the asymmetry
+        and because it doesn't satisfy the triangle inequality. It's a
+        "divergence."
+      </li>
+    </ol>
+
+    <div class="insight">
+      <strong>The asymmetry matters for AI.</strong> KL(P_data ‖ Q_model)
+      penalizes the model for assigning low probability where the data has high
+      probability (mode-covering). KL(Q_model ‖ P_data) penalizes the model for
+      assigning high probability where the data has low probability
+      (mode-seeking). Different training objectives optimize different KL
+      directions, leading to different model behaviors (e.g., beam search vs.
+      sampling).
+    </div>
+
+    <h2>Cross-Entropy = Entropy + KL Divergence</h2>
+
+    <div class="formula-spotlight">H(P, Q) = H(P) + KL(P ‖ Q)</div>
+
+    <p>
+      Cross-entropy decomposes into: the
+      <strong>unavoidable uncertainty</strong> of the data itself (H(P)) plus
+      the <strong>extra uncertainty</strong> from using the wrong model (KL
+      divergence).
+    </p>
+
+    <p>
+      During training, H(P) — the entropy of real language — is constant (it's a
+      property of the data, not the model). So
+      <strong>minimizing cross-entropy = minimizing KL divergence</strong>. The
+      model can't make language less inherently uncertain; it can only reduce
+      the gap between its predictions and reality.
+    </p>
+
+    <div class="insight">
+      <strong>This completes the training story.</strong> The model's loss
+      function is cross-entropy = H(data) + KL(data ‖ model). Since H(data) is
+      fixed, minimizing the loss means minimizing KL divergence — making the
+      model's distribution as close as possible to the true distribution of
+      language. That's what "learning" means mathematically: reducing KL
+      divergence.
+    </div>
+
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="quiz-question" id="q1">
+        <p>Q1: KL(P ‖ Q) = 0. What does this imply?</p>
+        <span class="quiz-option" onclick="check('q1', 1)"
+          >A. P and Q are completely different distributions</span
+        >
+        <span class="quiz-option" onclick="check('q1', 2)"
+          >B. P = Q for all outcomes — the distributions are identical</span
+        >
+        <span class="quiz-option" onclick="check('q1', 3)"
+          >C. Q is a uniform distribution</span
+        >
+        <span class="quiz-option" onclick="check('q1', 4)"
+          >D. P has zero entropy</span
+        >
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q2">
+        <p>
+          Q2: During training, cross-entropy loss decreases from 4.2 to 2.1.
+          What's happening mathematically?
+        </p>
+        <span class="quiz-option" onclick="check('q2', 1)"
+          >A. The entropy of language H(P) is decreasing</span
+        >
+        <span class="quiz-option" onclick="check('q2', 2)"
+          >B. KL(P ‖ Q_model) is decreasing — the model's distribution is
+          getting closer to the true data distribution</span
+        >
+        <span class="quiz-option" onclick="check('q2', 3)"
+          >C. The model is memorizing the training data exactly</span
+        >
+        <span class="quiz-option" onclick="check('q2', 4)"
+          >D. The vocabulary size is shrinking</span
+        >
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="quiz-question" id="q3">
+        <p>
+          Q3: A model assigns P("the") = 0.9 when the true probability in
+          language is 0.3. Another model assigns P("the") = 0.3. Which
+          contributes more to KL divergence, and why?
+        </p>
+        <span class="quiz-option" onclick="check('q3', 1)"
+          >A. The 0.9 model — because 0.9 > 0.3</span
+        >
+        <span class="quiz-option" onclick="check('q3', 2)"
+          >B. The 0.9 model — because KL uses the log ratio: log(0.3/0.9) ≈
+          −1.1, weighted by P=0.3</span
+        >
+        <span class="quiz-option" onclick="check('q3', 3)"
+          >C. They contribute equally</span
+        >
+        <span class="quiz-option" onclick="check('q3', 4)"
+          >D. Neither — KL divergence only penalizes underestimation, not
+          overestimation</span
+        >
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+    </div>
+
+    <div class="source-box">
+      <strong>📺 Primary Source</strong>
+      Watch:
+      <a href="https://www.youtube.com/watch?v=ErfnhcEV1O8"
+        >A Short Introduction to Entropy, Cross-Entropy and KL-Divergence —
+        Aurélien Géron</a
+      >
+      (same video as 0010 — covers the full triad)
+    </div>
+
+    <div class="source-box">
+      <strong>📖 Recommended Reading</strong>
+      Blitzstein & Hwang, <em>Introduction to Probability</em> — Section 13.2
+      (Entropy and KL); Bishop,
+      <em>Pattern Recognition and Machine Learning</em> — Section 1.6
+      (Information Theory)
+    </div>
+
+    <div class="teacher-note">
+      This completes the probability pillar. The next lesson — Softmax — is
+      where both pillars fuse. You now have linear algebra (vectors, matrices,
+      dot products, transformations) and probability (distributions, entropy,
+      KL). The bridge between them is the softmax function.
+    </div>
+
+    <div class="prev-next">
+      <a href="0010-entropy-cross-entropy.html"
+        >← 0010: Entropy & Cross-Entropy</a
+      >
+      <a href="0012-softmax-the-bridge.html"
+        >Next: 0012 — Softmax: The Bridge →</a
+      >
+    </div>
+
+    <script>
+      function check(qId, chosen) {
+        const a = {
+          q1: {
+            correct: 2,
+            feedback: {
+              2: "Correct! KL(P‖Q)=0 iff P(x)=Q(x) for all x. The distributions are identical. This is the ideal — a perfect model would have KL=0 (and cross-entropy = entropy of the data).",
+              1: "KL=0 means they're identical, not different.",
+              3: "A uniform Q could only have KL=0 if P is also uniform.",
+              4: "KL depends on both P and Q; P's entropy alone doesn't determine KL.",
+            },
+          },
+          q2: {
+            correct: 2,
+            feedback: {
+              2: "Correct! Since cross-entropy = H(P) + KL(P‖Q) and H(P) is constant (it's the entropy of real language, which doesn't change during training), the entire decrease must come from KL divergence shrinking — the model getting closer to the true distribution.",
+              1: "H(P) is the entropy of real language — it doesn't change when you update the model.",
+              3: "KL decreasing doesn't mean exact memorization — it means better probability estimates.",
+              4: "Vocabulary size is fixed by the tokenizer.",
+            },
+          },
+          q3: {
+            correct: 2,
+            feedback: {
+              2: "Correct! KL contribution = P(true)·log(P(true)/Q(true)) = 0.3·log(0.3/0.9) = 0.3·(−1.1) ≈ −0.33 (so the KL term is positive 0.33 after the negative sign in cross-entropy). If Q=0.3=P, the contribution is 0.3·log(0.3/0.3)=0. The overconfident model is penalized for its miscalibration.",
+              1: "KL uses the ratio, not the absolute difference.",
+              3: "They don't — the model matching the truth contributes zero.",
+              4: "KL penalizes both directions through the log ratio — overestimation and underestimation both create divergence.",
+            },
+          },
+        };
+        const fb = document.getElementById(qId + "-fb"),
+          opts = document.querySelectorAll("#" + qId + " .quiz-option"),
+          ans = a[qId];
+        opts.forEach((o, i) => {
+          o.classList.remove("correct", "wrong");
+          if (i + 1 === ans.correct) o.classList.add("correct");
+          if (i + 1 === chosen && chosen !== ans.correct)
+            o.classList.add("wrong");
+        });
+        fb.innerHTML = ans.feedback[chosen];
+        fb.className =
+          "feedback show " + (chosen === ans.correct ? "correct" : "wrong");
+      }
+    </script>
+    <nav style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid #e5e0d8;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;">
+    <a href="0010-entropy-cross-entropy.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">← Previous</a>
+    <a href="../" style="color:#6b6b6b;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Collection Index</a>
+    <a href="0012-softmax-the-bridge.html" style="color:#2563eb;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Next →</a>
+  </nav>
+
+</body>
+</html>
