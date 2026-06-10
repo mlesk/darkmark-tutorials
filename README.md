@@ -2,7 +2,7 @@
 
 A living library of self-paced, deep-understanding courses. Each collection is built around a mission — a reason to learn — with beautiful, single-topic HTML lessons designed to be read, returned to, and built upon.
 
-**[→ Browse the library](https://mark.github.io/darkmark-tutorials/)** (GitHub Pages)
+**[→ Browse the library](https://mlesk.github.io/darkmark-tutorials/)** (GitHub Pages)
 
 ---
 
@@ -61,7 +61,7 @@ No build step, no dependencies — pure HTML and CSS.
 
 ## Published as GitHub Pages
 
-The library is published at **[mark.github.io/darkmark-tutorials](https://mark.github.io/darkmark-tutorials/)** via GitHub Pages. The root `index.html` is the library landing page. Each collection has its own index with the full lesson table of contents. Every lesson includes prev/next navigation to walk through the course in sequence.
+The library is published at **[mark.github.io/darkmark-tutorials](https://mlesk.github.io/darkmark-tutorials/)** via GitHub Pages. The root `index.html` is the library landing page. Each collection has its own index with the full lesson table of contents. Every lesson includes prev/next navigation to walk through the course in sequence.
 
 To enable Pages on your own fork: **Settings → Pages → Source: Deploy from branch → `main` / root**.
 
